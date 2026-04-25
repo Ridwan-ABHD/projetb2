@@ -1,0 +1,104 @@
+/* ==========================================================================
+   Page : Dashboard (index.html)
+   ========================================================================== */
+
+/* Eyebrow "Bonjour" au-dessus du nom dans le header */
+.dashboard__greeting-eyebrow {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  font-weight: var(--fw-medium);
+  margin-bottom: 2px;
+}
+
+/* Bandeau statut général de l'exploitation */
+.dashboard__status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  background: var(--agri-green);
+  color: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.dashboard__status-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dashboard__status-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dashboard__status-label {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+}
+
+.dashboard__status-detail {
+  font-size: var(--fs-sm);
+  opacity: 0.85;
+}
+
+/* Grille capteurs (2x2) */
+.dashboard__sensors {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.sensor-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.sensor-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Liste des alertes */
+.alert-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.alert-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--white);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+
+.alert-item__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.alert-item__title {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+}
+
+.alert-item__time {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}

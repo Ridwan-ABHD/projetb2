@@ -1,0 +1,171 @@
+/* ==========================================================================
+   Page : Carte des parcelles (parcelles.html)
+   ========================================================================== */
+
+/* Légende couleurs */
+.legend {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--white);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  font-weight: var(--fw-medium);
+}
+
+.legend__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+}
+
+.legend__dot--healthy { background: var(--status-healthy); }
+.legend__dot--warning { background: var(--status-warning); }
+.legend__dot--critical { background: var(--status-critical); }
+
+.legend__count {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+/* Grille des parcelles (2 colonnes x 3 lignes) */
+.parcels-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.parcel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 2px solid transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  min-height: 110px;
+  position: relative;
+  overflow: hidden;
+}
+
+.parcel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+.parcel:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.parcel--healthy {
+  background: rgba(76, 175, 80, 0.08);
+  border-color: rgba(76, 175, 80, 0.25);
+  color: var(--status-healthy);
+}
+
+.parcel--warning {
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.30);
+  color: var(--status-warning);
+}
+
+.parcel--critical {
+  background: rgba(214, 69, 69, 0.08);
+  border-color: rgba(214, 69, 69, 0.30);
+  color: var(--status-critical);
+}
+
+.parcel__code {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  line-height: 1;
+}
+
+.parcel__name {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--text-dark);
+}
+
+.parcel__meta {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  margin-top: auto;
+}
+
+/* Détail parcelle sélectionnée */
+.parcel-detail {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  box-shadow: var(--shadow-sm);
+}
+
+.parcel-detail__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.parcel-detail__eyebrow {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: var(--fw-medium);
+}
+
+.parcel-detail__title {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+}
+
+.parcel-detail__metrics {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.parcel-detail__metrics li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border);
+  font-size: var(--fs-sm);
+}
+
+.parcel-detail__metrics li:last-child {
+  border-bottom: none;
+}
+
+.parcel-detail__label {
+  color: var(--text-muted);
+}
+
+.parcel-detail__value {
+  font-weight: var(--fw-semibold);
+  color: var(--text-dark);
+}

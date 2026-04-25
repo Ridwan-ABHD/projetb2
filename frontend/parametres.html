@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#2D7D46" />
+  <title>AgriSense — Paramètres</title>
+  <link rel="stylesheet" href="assets/css/variables.css" />
+  <link rel="stylesheet" href="assets/css/base.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/pages/parametres.css" />
+</head>
+<body>
+  <div class="app-shell">
+
+    <!-- ====== HEADER ====== -->
+    <header class="app-header">
+      <h1 class="app-header__title">Réglages</h1>
+      <span class="app-header__icon-btn" aria-hidden="true"></span>
+    </header>
+
+    <!-- ====== MAIN ====== -->
+    <main class="app-main">
+
+      <!-- Profil utilisateur -->
+      <section class="profile-card">
+        <div class="profile-card__avatar" aria-hidden="true">R</div>
+        <div class="profile-card__body">
+          <p class="profile-card__name">Ridwan A.</p>
+          <p class="profile-card__email">ridwan@exploitation.fr</p>
+        </div>
+        <button class="app-header__icon-btn" aria-label="Modifier le profil">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+        </button>
+      </section>
+
+      <!-- Seuils d'alerte -->
+      <section class="settings-group">
+        <h2 class="settings-group__title">Seuils d'alerte</h2>
+
+        <div class="settings-group__body">
+
+          <div class="setting-row">
+            <p class="setting-row__label">Température max</p>
+            <div class="threshold">
+              <button class="threshold__btn" type="button" aria-label="Diminuer">−</button>
+              <span class="threshold__value">30<span class="card__unit">°C</span></span>
+              <button class="threshold__btn" type="button" aria-label="Augmenter">+</button>
+            </div>
+          </div>
+
+          <div class="setting-row">
+            <p class="setting-row__label">Température min</p>
+            <div class="threshold">
+              <button class="threshold__btn" type="button" aria-label="Diminuer">−</button>
+              <span class="threshold__value">8<span class="card__unit">°C</span></span>
+              <button class="threshold__btn" type="button" aria-label="Augmenter">+</button>
+            </div>
+          </div>
+
+          <div class="setting-row">
+            <p class="setting-row__label">Humidité sol min</p>
+            <div class="threshold">
+              <button class="threshold__btn" type="button" aria-label="Diminuer">−</button>
+              <span class="threshold__value">35<span class="card__unit">%</span></span>
+              <button class="threshold__btn" type="button" aria-label="Augmenter">+</button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Notifications -->
+      <section class="settings-group">
+        <h2 class="settings-group__title">Notifications</h2>
+
+        <div class="settings-group__body">
+          <div class="setting-row">
+            <div>
+              <p class="setting-row__label">Alertes critiques</p>
+              <p class="setting-row__hint">Notification immédiate</p>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" checked />
+              <span class="toggle__slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <p class="setting-row__label">Rapport quotidien</p>
+              <p class="setting-row__hint">Tous les jours à 8h00</p>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" checked />
+              <span class="toggle__slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <p class="setting-row__label">Notifications email</p>
+              <p class="setting-row__hint">Envoi à votre adresse</p>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" />
+              <span class="toggle__slider"></span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- Préférences -->
+      <section class="settings-group">
+        <h2 class="settings-group__title">Préférences</h2>
+
+        <div class="settings-group__body">
+          <a href="#" class="setting-row setting-row--link">
+            <p class="setting-row__label">Langue</p>
+            <span class="setting-row__value">Français</span>
+          </a>
+          <a href="#" class="setting-row setting-row--link">
+            <p class="setting-row__label">Unités</p>
+            <span class="setting-row__value">Métriques</span>
+          </a>
+          <a href="#" class="setting-row setting-row--link">
+            <p class="setting-row__label">À propos</p>
+            <span class="setting-row__value">v0.1.0</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- JS hook: appel POST /api/settings au change pour persister les valeurs -->
+      <button class="btn btn--ghost btn--full">Se déconnecter</button>
+
+    </main>
+
+    <!-- ====== BOTTOM NAV ====== -->
+    <nav class="bottom-nav" aria-label="Navigation principale">
+      <a href="index.html" class="bottom-nav__item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Accueil
+      </a>
+      <a href="parcelles.html" class="bottom-nav__item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        Parcelles
+      </a>
+      <a href="diagnostic.html" class="bottom-nav__item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/></svg>
+        Diagnostic
+      </a>
+      <a href="historique.html" class="bottom-nav__item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Historique
+      </a>
+      <a href="parametres.html" class="bottom-nav__item is-active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.39.16.74.42 1 .76V9a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Réglages
+      </a>
+    </nav>
+
+  </div>
+</body>
+</html>
