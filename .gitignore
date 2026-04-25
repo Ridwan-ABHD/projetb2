@@ -7,7 +7,7 @@ Thumbs.db
 .idea/
 *.swp
 
-# Python (à venir backend)
+# Python 
 __pycache__/
 *.py[cod]
 .venv/
@@ -26,3 +26,6 @@ env/
 
 # Logs
 *.log
+
+
+.claude/
