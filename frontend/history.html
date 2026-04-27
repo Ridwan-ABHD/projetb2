@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Surveillance Apicole — Historique</title>
+  <link rel="stylesheet" href="base.css" />
+  <link rel="stylesheet" href="ui.css" />
+  <link rel="stylesheet" href="pages.css" />
+</head>
+<body>
+  <div class="app">
+
+    <header class="app-header">
+      <div class="header-top">
+        <div>
+          <small>Journal</small>
+          <h1>Historique</h1>
+        </div>
+        <button class="icon-btn">⬇️</button>
+      </div>
+      <small>Alertes & diagnostics des 7 derniers jours</small>
+    </header>
+
+    <main class="app-main">
+
+      <div class="chips">
+        <button class="chip active">Tous</button>
+        <button class="chip">Alertes</button>
+        <button class="chip">Diagnostics</button>
+        <button class="chip">Capteurs</button>
+      </div>
+
+      <!-- TODO: GET /api/history?range=7d -->
+
+      <section class="day">
+        <h2>Aujourd'hui · 27 avril</h2>
+
+        <article class="event">
+          <div class="event-icon alert">⚠️</div>
+          <div class="event-body">
+            <h3>Alerte critique — Ruche n°3</h3>
+            <p>Probabilité d'essaimage 85% · Action requise</p>
+            <time>Il y a 12 min</time>
+          </div>
+        </article>
+
+        <article class="event">
+          <div class="event-icon info">🤖</div>
+          <div class="event-body">
+            <h3>Diagnostic IA lancé — Ruche n°3</h3>
+            <p>Analyse acoustique 30s via Grok</p>
+            <time>Il y a 14 min</time>
+          </div>
+        </article>
+
+        <article class="event">
+          <div class="event-icon warn">📈</div>
+          <div class="event-body">
+            <h3>Seuil dépassé — Ruche n°2</h3>
+            <p>Fréquence 258 Hz (seuil 250 Hz)</p>
+            <time>Il y a 2h</time>
+          </div>
+        </article>
+      </section>
+
+      <section class="day">
+        <h2>Hier · 26 avril</h2>
+
+        <article class="event">
+          <div class="event-icon ok">✅</div>
+          <div class="event-body">
+            <h3>Diagnostic IA — Ruche n°1</h3>
+            <p>État normal · Aucune anomalie détectée</p>
+            <time>18:42</time>
+          </div>
+        </article>
+
+        <article class="event">
+          <div class="event-icon info">🌡️</div>
+          <div class="event-body">
+            <h3>Synthèse capteurs quotidienne</h3>
+            <p>Moyenne : 245 Hz · 34°C · 61%</p>
+            <time>23:00</time>
+          </div>
+        </article>
+      </section>
+
+      <section class="day">
+        <h2>25 avril</h2>
+
+        <article class="event">
+          <div class="event-icon warn">📈</div>
+          <div class="event-body">
+            <h3>Pic d'activité — Ruche n°6</h3>
+            <p>Fréquence inhabituelle entre 14h et 16h</p>
+            <time>15:22</time>
+          </div>
+        </article>
+
+        <article class="event">
+          <div class="event-icon ok">✅</div>
+          <div class="event-body">
+            <h3>Synchronisation Azure</h3>
+            <p>142 mesures envoyées · OK</p>
+            <time>23:00</time>
+          </div>
+        </article>
+      </section>
+
+    </main>
+
+    <nav class="bottom-nav">
+      <a href="index.html"    class="nav-item"><span>🏠</span><span>Accueil</span></a>
+      <a href="map.html"      class="nav-item"><span>🗺️</span><span>Ruches</span></a>
+      <a href="diag.html"     class="nav-item"><span>🤖</span><span>Diagnostic</span></a>
+      <a href="history.html"  class="nav-item active"><span>📋</span><span>Historique</span></a>
+      <a href="settings.html" class="nav-item"><span>⚙️</span><span>Réglages</span></a>
+    </nav>
+
+  </div>
+</body>
+</html>

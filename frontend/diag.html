@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Surveillance Apicole — Diagnostic</title>
+  <link rel="stylesheet" href="base.css" />
+  <link rel="stylesheet" href="ui.css" />
+  <link rel="stylesheet" href="pages.css" />
+</head>
+<body>
+  <div class="app">
+
+    <header class="app-header">
+      <div class="header-top">
+        <div>
+          <small>Module IA</small>
+          <h1>Diagnostic</h1>
+        </div>
+        <button class="icon-btn">ℹ️</button>
+      </div>
+      <small>Propulsé par Grok · Analyse acoustique</small>
+    </header>
+
+    <main class="app-main">
+
+      <div class="hero">
+        <span class="emoji">🤖</span>
+        <h2>Analyse acoustique IA</h2>
+        <p>Le modèle écoute le vrombissement des abeilles pour détecter essaimage, maladies ou stress.</p>
+      </div>
+
+      <div class="field">
+        <label for="hive">Ruche à analyser</label>
+        <select id="hive">
+          <option>Ruche n°3 · Prairie Est</option>
+          <option>Ruche n°1 · La Clairière</option>
+          <option>Ruche n°2 · Verger Sud</option>
+          <option>Ruche n°4 · Lisière Nord</option>
+          <option>Ruche n°5 · Pommeraie</option>
+          <option>Ruche n°6 · Bord de l'étang</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="duration">Durée d'écoute (secondes)</label>
+        <input id="duration" type="number" value="30" min="10" max="120" />
+      </div>
+
+      <!-- TODO: POST /api/diagnostic/start -->
+      <button class="btn btn-primary">🎙️ Lancer une analyse</button>
+
+      <!-- Loader (afficher pendant l'appel Grok) -->
+      <div class="loader">
+        <div class="loader-bars"><span></span><span></span><span></span><span></span><span></span></div>
+        <small>Analyse en cours…</small>
+      </div>
+
+      <!-- TODO: injecter ici la réponse de POST /api/diagnostic/result -->
+      <div class="result">
+        <header>
+          <span class="badge badge-green">Grok</span>
+          <h3>Ruche n°3 · Résultat</h3>
+        </header>
+        <dl>
+          <div><dt>Probabilité d'essaimage</dt><dd class="warn">85 %</dd></div>
+          <div><dt>Fréquence dominante</dt><dd>271 Hz</dd></div>
+          <div><dt>Niveau de stress</dt><dd class="warn">Élevé</dd></div>
+          <div><dt>Durée analysée</dt><dd>30 s</dd></div>
+        </dl>
+        <div class="reco">
+          <strong>Action recommandée</strong>
+          Diviser la colonie sous 48h pour prévenir l'essaimage.
+        </div>
+      </div>
+
+    </main>
+
+    <nav class="bottom-nav">
+      <a href="index.html"    class="nav-item"><span>🏠</span><span>Accueil</span></a>
+      <a href="map.html"      class="nav-item"><span>🗺️</span><span>Ruches</span></a>
+      <a href="diag.html"     class="nav-item active"><span>🤖</span><span>Diagnostic</span></a>
+      <a href="history.html"  class="nav-item"><span>📋</span><span>Historique</span></a>
+      <a href="settings.html" class="nav-item"><span>⚙️</span><span>Réglages</span></a>
+    </nav>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Surveillance Apicole — Paramètres</title>
+  <link rel="stylesheet" href="base.css" />
+  <link rel="stylesheet" href="ui.css" />
+  <link rel="stylesheet" href="pages.css" />
+</head>
+<body>
+  <div class="app">
+
+    <header class="app-header">
+      <div class="header-top">
+        <div>
+          <small>Configuration</small>
+          <h1>Paramètres</h1>
+        </div>
+        <button class="icon-btn">👤</button>
+      </div>
+      <small>Seuils, alertes & connexions</small>
+    </header>
+
+    <main class="app-main">
+
+      <!-- TODO: GET /api/settings -->
+
+      <section class="group">
+        <h2>Seuils acoustiques (Hz)</h2>
+
+        <div class="setting">
+          <div>
+            <label>Seuil d'alerte essaimage</label>
+            <small>Au-dessus, notification push</small>
+          </div>
+          <input type="number" value="250" min="100" max="500" />
+        </div>
+
+        <div class="setting">
+          <div>
+            <label>Seuil critique maladie</label>
+            <small>Déclenche une alerte rouge</small>
+          </div>
+          <input type="number" value="270" min="100" max="500" />
+        </div>
+
+        <div class="setting">
+          <div>
+            <label>Fenêtre d'analyse (s)</label>
+            <small>Durée par défaut</small>
+          </div>
+          <input type="number" value="30" min="10" max="120" />
+        </div>
+      </section>
+
+      <section class="group">
+        <h2>Environnement</h2>
+
+        <div class="setting">
+          <div>
+            <label>Température max (°C)</label>
+            <small>Stress thermique au-delà</small>
+          </div>
+          <input type="number" value="36" min="20" max="50" />
+        </div>
+
+        <div class="setting">
+          <div>
+            <label>Humidité max (%)</label>
+            <small>Risque de moisissure</small>
+          </div>
+          <input type="number" value="75" min="30" max="100" />
+        </div>
+      </section>
+
+      <section class="group">
+        <h2>Notifications</h2>
+
+        <div class="setting">
+          <div>
+            <label>Alertes critiques</label>
+            <small>Push immédiat</small>
+          </div>
+          <span class="toggle on"></span>
+        </div>
+
+        <div class="setting">
+          <div>
+            <label>Synthèse quotidienne</label>
+            <small>Tous les jours à 20h</small>
+          </div>
+          <span class="toggle on"></span>
+        </div>
+
+        <div class="setting">
+          <div>
+            <label>Mode silencieux</label>
+            <small>22h → 7h</small>
+          </div>
+          <span class="toggle"></span>
+        </div>
+      </section>
+
+      <section class="group">
+        <h2>API</h2>
+
+        <div class="setting">
+          <div>
+            <label>Backend FastAPI</label>
+            <small>https://api.apiculture.local</small>
+          </div>
+          <span class="value">Connecté</span>
+        </div>
+
+        <div class="setting">
+          <div>
+            <label>Clé API Grok</label>
+            <small>•••••••••••••• 7f3a</small>
+          </div>
+          <span class="value">Modifier</span>
+        </div>
+
+        <div class="setting">
+          <div>
+            <label>Sync Azure</label>
+            <small>Il y a 4 min</small>
+          </div>
+          <span class="toggle on"></span>
+        </div>
+      </section>
+
+      <!-- TODO: POST /api/settings -->
+      <button class="btn btn-primary">💾 Enregistrer</button>
+      <button class="btn btn-secondary">Valeurs par défaut</button>
+
+    </main>
+
+    <nav class="bottom-nav">
+      <a href="index.html"    class="nav-item"><span>🏠</span><span>Accueil</span></a>
+      <a href="map.html"      class="nav-item"><span>🗺️</span><span>Ruches</span></a>
+      <a href="diag.html"     class="nav-item"><span>🤖</span><span>Diagnostic</span></a>
+      <a href="history.html"  class="nav-item"><span>📋</span><span>Historique</span></a>
+      <a href="settings.html" class="nav-item active"><span>⚙️</span><span>Réglages</span></a>
+    </nav>
+
+  </div>
+</body>
+</html>

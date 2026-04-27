@@ -1,0 +1,130 @@
+/* ui.css — composants réutilisables */
+
+/* Card */
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px;
+}
+
+/* Boutons */
+.btn {
+  width: 100%;
+  padding: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: var(--r);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.btn-primary { background: var(--green); color: var(--white); padding: 16px; font-size: 15px; }
+.btn-secondary { background: var(--white); color: var(--green); border: 1px solid var(--green); }
+
+/* Alertes */
+.alert {
+  display: flex;
+  gap: 12px;
+  background: #FFF4E0;
+  border-left: 4px solid var(--yellow);
+  border-radius: var(--r);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.alert.danger { background: #FDECEE; border-left-color: var(--red); }
+
+.alert span:first-child { font-size: 24px; }
+.alert strong { display: block; font-size: 11px; color: var(--orange); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.alert.danger strong { color: var(--red); }
+.alert p { font-size: 14px; font-weight: 500; }
+
+/* Dot (statut) */
+.dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.dot-green  { background: var(--green-light); }
+.dot-orange { background: var(--orange); }
+.dot-red    { background: var(--red); }
+
+/* Badge */
+.badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  color: var(--white);
+}
+
+.badge-green  { background: var(--green); }
+.badge-orange { background: var(--orange); }
+.badge-red    { background: var(--red); }
+
+/* Chips (filtres) */
+.chips {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+}
+
+.chip {
+  padding: 8px 14px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.chip.active { background: var(--green); color: var(--white); border-color: var(--green); }
+
+/* Toggle */
+.toggle {
+  width: 44px;
+  height: 26px;
+  background: var(--border);
+  border-radius: 100px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.toggle::after {
+  content: "";
+  width: 20px;
+  height: 20px;
+  background: var(--white);
+  border-radius: 50%;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+}
+
+.toggle.on { background: var(--green); }
+.toggle.on::after { left: 21px; }
+
+/* Champs de formulaire */
+.field { margin-bottom: 16px; }
+
+.field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  padding: 12px 14px;
+  font: inherit;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+}
+
+.field input:focus,
+.field select:focus { outline: none; border-color: var(--green); }
