@@ -27,8 +27,6 @@
 
 /* Alertes */
 .alert {
-  display: flex;
-  gap: 12px;
   background: #FFF4E0;
   border-left: 4px solid var(--yellow);
   border-radius: var(--r);
@@ -38,7 +36,6 @@
 
 .alert.danger { background: #FDECEE; border-left-color: var(--red); }
 
-.alert span:first-child { font-size: 24px; }
 .alert strong { display: block; font-size: 11px; color: var(--orange); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
 .alert.danger strong { color: var(--red); }
 .alert p { font-size: 14px; font-weight: 500; }

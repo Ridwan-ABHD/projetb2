@@ -17,7 +17,7 @@
           <small>Journal</small>
           <h1>Historique</h1>
         </div>
-        <button class="icon-btn">⬇️</button>
+        <button class="icon-btn" aria-label="Exporter"></button>
       </div>
       <small>Alertes & diagnostics des 7 derniers jours</small>
     </header>
@@ -35,7 +35,7 @@
         <h2>Aujourd'hui · 27 avril</h2>
 
         <article class="event">
-          <div class="event-icon alert">⚠️</div>
+          <span class="event-bar alert"></span>
           <div class="event-body">
             <h3>Alerte critique — Ruche n°3</h3>
             <p>Probabilité d'essaimage 85% · Action requise</p>
@@ -44,7 +44,7 @@
         </article>
 
         <article class="event">
-          <div class="event-icon info">🤖</div>
+          <span class="event-bar info"></span>
           <div class="event-body">
             <h3>Diagnostic IA lancé — Ruche n°3</h3>
             <p>Analyse acoustique 30s</p>
@@ -53,7 +53,7 @@
         </article>
 
         <article class="event">
-          <div class="event-icon warn">📈</div>
+          <span class="event-bar warn"></span>
           <div class="event-body">
             <h3>Seuil dépassé — Ruche n°2</h3>
             <p>Fréquence 258 Hz (seuil 250 Hz)</p>
@@ -66,7 +66,7 @@
         <h2>Hier · 26 avril</h2>
 
         <article class="event">
-          <div class="event-icon ok">✅</div>
+          <span class="event-bar ok"></span>
           <div class="event-body">
             <h3>Diagnostic IA — Ruche n°1</h3>
             <p>État normal · Aucune anomalie détectée</p>
@@ -75,7 +75,7 @@
         </article>
 
         <article class="event">
-          <div class="event-icon info">🌡️</div>
+          <span class="event-bar info"></span>
           <div class="event-body">
             <h3>Synthèse capteurs quotidienne</h3>
             <p>Moyenne : 245 Hz · 34°C · 61%</p>
@@ -88,7 +88,7 @@
         <h2>25 avril</h2>
 
         <article class="event">
-          <div class="event-icon warn">📈</div>
+          <span class="event-bar warn"></span>
           <div class="event-body">
             <h3>Pic d'activité — Ruche n°6</h3>
             <p>Fréquence inhabituelle entre 14h et 16h</p>
@@ -97,7 +97,7 @@
         </article>
 
         <article class="event">
-          <div class="event-icon ok">✅</div>
+          <span class="event-bar ok"></span>
           <div class="event-body">
             <h3>Synchronisation cloud</h3>
             <p>142 mesures envoyées · OK</p>
@@ -109,11 +109,11 @@
     </main>
 
     <nav class="bottom-nav">
-      <a href="index.html"    class="nav-item"><span>🏠</span><span>Accueil</span></a>
-      <a href="map.html"      class="nav-item"><span>🗺️</span><span>Ruches</span></a>
-      <a href="diag.html"     class="nav-item"><span>🤖</span><span>Diagnostic</span></a>
-      <a href="history.html"  class="nav-item active"><span>📋</span><span>Historique</span></a>
-      <a href="settings.html" class="nav-item"><span>⚙️</span><span>Réglages</span></a>
+      <a href="index.html"    class="nav-item">Accueil</a>
+      <a href="map.html"      class="nav-item">Ruches</a>
+      <a href="diag.html"     class="nav-item">Diagnostic</a>
+      <a href="history.html"  class="nav-item active">Historique</a>
+      <a href="settings.html" class="nav-item">Réglages</a>
     </nav>
 
   </div>
