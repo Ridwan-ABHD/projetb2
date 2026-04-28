@@ -1,114 +1,102 @@
-<!-- En-tête de la page Ruches -->
-<header class="app-header">
-  <div class="header-top">
-    <div>
-      <small>Vue d'ensemble</small>
-      <h1>Mes Ruches</h1>
-    </div>
-  </div>
-  <small>
-    {{ hives().length }} ruches ·
-    {{ alertCount }} alerte{{ alertCount > 1 ? 's' : '' }}
-  </small>
-</header>
-
-<main class="app-main">
-
-  <!-- Légende des couleurs -->
-  <div class="legend">
-    <span><span class="dot dot-green"></span> Normal</span>
-    <span><span class="dot dot-orange"></span> Essaimage</span>
-    <span><span class="dot dot-red"></span> Alerte</span>
-  </div>
-
-  <!-- Grille des ruches — clic pour afficher les détails -->
-  <section class="hive-grid">
-
-    @for (hive of hives(); track hive.id) {
-      <div
-        class="hive"
-        [ngClass]="hiveColorClass(hive.status)"
-        [class.hive-selected]="selectedHive()?.id === hive.id"
-        (click)="selectHive(hive)"
-        role="button"
-        [attr.aria-label]="'Voir détails ' + hive.name"
-      >
-        <header>
-          <span class="badge" [ngClass]="hiveBadgeClass(hive.status)">
-            {{ hiveStatusLabel(hive.status) }}
-          </span>
-        </header>
-
-        <h3>{{ hive.name }}</h3>
-        <p class="hive-location">📍 {{ hive.location }}</p>
-
-        <p>
-          @if (hive.last_reading) {
-            {{ hive.last_reading.frequency_hz | number:'1.0-0' }} Hz
-          } @else { — Hz }
-        </p>
-
-        <p>
-          @if (hive.last_reading) {
-            {{ hive.last_reading.temperature_c | number:'1.1-1' }}°C ·
-            {{ hive.last_reading.humidity_pct  | number:'1.0-0' }}%
-          } @else { — · — }
-        </p>
-      </div>
-    }
-
-    @if (hives().length === 0) {
-      <p class="empty-state" style="grid-column: 1/-1;">Chargement…</p>
-    }
-
-  </section>
-
-</main>
-
-<!-- Overlay sombre derrière le panneau -->
-@if (selectedHive()) {
-  <div class="hive-detail-overlay" (click)="closeDetail()"></div>
-
-  <!-- Panneau de détail -->
-  <div class="hive-detail">
-    <div class="hive-detail-handle"></div>
-
-    <div class="hive-detail-header">
+@if (!selectedHive()) {
+  <header class="app-header">
+    <div class="header-top">
       <div>
-        <span class="badge" [ngClass]="hiveBadgeClass(selectedHive()!.status)">
-          {{ hiveStatusLabel(selectedHive()!.status) }}
-        </span>
-        <h2>{{ selectedHive()!.name }}</h2>
-        <small>📍 {{ selectedHive()!.location }}</small>
+        <small>Vue d'ensemble</small>
+        <h1>Mes Ruches</h1>
       </div>
-      <button class="icon-btn" (click)="closeDetail()" aria-label="Fermer">✕</button>
+    </div>
+    <small>
+      {{ hives().length }} ruches ·
+      {{ alertCount }} alerte{{ alertCount > 1 ? 's' : '' }}
+    </small>
+  </header>
+
+  <main class="app-main">
+    <div class="legend">
+      <span><span class="dot dot-green"></span> Normal</span>
+      <span><span class="dot dot-orange"></span> Essaimage</span>
+      <span><span class="dot dot-red"></span> Alerte</span>
     </div>
 
-    @if (selectedHive()!.last_reading) {
-      <div class="hive-detail-sensors">
-        <div class="sensor-item">
-          <small>🎵 Fréquence</small>
-          <strong>{{ selectedHive()!.last_reading!.frequency_hz | number:'1.0-0' }} Hz</strong>
+    <section class="hive-grid">
+      @for (hive of hives(); track hive.id) {
+        <div
+          class="hive"
+          [ngClass]="hiveColorClass(hive.status)"
+          (click)="selectHive(hive)"
+          role="button"
+          [attr.aria-label]="'Voir détails ' + hive.name"
+        >
+          <header>
+            <span class="badge" [ngClass]="hiveBadgeClass(hive.status)">
+              {{ hiveStatusLabel(hive.status) }}
+            </span>
+          </header>
+          <h3>{{ hive.name }}</h3>
+          <p class="hive-location">📍 {{ hive.location }}</p>
+          <p>
+            @if (hive.last_reading) {
+              {{ hive.last_reading.frequency_hz | number:'1.0-0' }} Hz
+            } @else { — Hz }
+          </p>
+          <p>
+            @if (hive.last_reading) {
+              {{ hive.last_reading.temperature_c | number:'1.1-1' }}°C ·
+              {{ hive.last_reading.humidity_pct  | number:'1.0-0' }}%
+            } @else { — · — }
+          </p>
         </div>
-        <div class="sensor-item">
-          <small>🌡️ Température</small>
-          <strong>{{ selectedHive()!.last_reading!.temperature_c | number:'1.1-1' }} °C</strong>
+      }
+
+      @if (hives().length === 0) {
+        <p class="empty-state" style="grid-column: 1/-1;">Chargement…</p>
+      }
+    </section>
+  </main>
+
+} @else {
+
+  <header class="app-header hive-detail-header-bar">
+    <div class="header-top">
+      <button class="back-btn" (click)="closeDetail()">← Retour</button>
+      <span class="badge" [ngClass]="hiveBadgeClass(selectedHive()!.status)">
+        {{ hiveStatusLabel(selectedHive()!.status) }}
+      </span>
+    </div>
+    <h1 class="hive-detail-name">{{ selectedHive()!.name }}</h1>
+    <small>📍 {{ selectedHive()!.location }}</small>
+  </header>
+
+  <main class="app-main">
+    <div class="hive-detail-card" [ngClass]="hiveColorClass(selectedHive()!.status)">
+
+      @if (selectedHive()!.last_reading) {
+        <div class="hive-detail-sensors">
+          <div class="sensor-item">
+            <small>🎵 Fréquence</small>
+            <strong>{{ selectedHive()!.last_reading!.frequency_hz | number:'1.0-0' }} Hz</strong>
+          </div>
+          <div class="sensor-item">
+            <small>🌡️ Température</small>
+            <strong>{{ selectedHive()!.last_reading!.temperature_c | number:'1.1-1' }} °C</strong>
+          </div>
+          <div class="sensor-item">
+            <small>💧 Humidité</small>
+            <strong>{{ selectedHive()!.last_reading!.humidity_pct | number:'1.0-0' }} %</strong>
+          </div>
+          <div class="sensor-item">
+            <small>⚖️ Poids</small>
+            <strong>{{ selectedHive()!.last_reading!.weight_kg | number:'1.1-1' }} kg</strong>
+          </div>
         </div>
-        <div class="sensor-item">
-          <small>💧 Humidité</small>
-          <strong>{{ selectedHive()!.last_reading!.humidity_pct | number:'1.0-0' }} %</strong>
-        </div>
-        <div class="sensor-item">
-          <small>⚖️ Poids</small>
-          <strong>{{ selectedHive()!.last_reading!.weight_kg | number:'1.1-1' }} kg</strong>
-        </div>
-      </div>
-      <p class="hive-detail-time">
-        Dernière mesure : {{ timeAgo(selectedHive()!.last_reading!.timestamp) }}
-      </p>
-    } @else {
-      <p class="empty-state">Aucune donnée capteur disponible.</p>
-    }
+        <p class="hive-detail-time">
+          Dernière mesure : {{ timeAgo(selectedHive()!.last_reading!.timestamp) }}
+        </p>
+      } @else {
+        <p class="empty-state">Aucune donnée capteur disponible.</p>
+      }
+    </div>
 
     @if (selectedHive()!.active_alerts.length > 0) {
       <div class="hive-detail-alerts">
@@ -128,5 +116,6 @@
     } @else {
       <p class="hive-detail-time">✅ Aucune alerte active</p>
     }
-  </div>
+  </main>
+
 }

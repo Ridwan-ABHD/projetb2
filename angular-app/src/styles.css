@@ -414,44 +414,47 @@ app-chat {
 .hive.hive-selected { opacity: 0.8; transform: scale(0.97); }
 .hive { cursor: pointer; }
 
-/* --- Panneau de détail ruche --- */
-.hive-detail-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.35);
-  z-index: 200;
+/* --- Bouton retour (vue détail ruche) --- */
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--agri-green);
+  background: var(--soft);
+  border: none;
+  border-radius: 100px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
 }
 
-.hive-detail {
-  position: fixed;
-  bottom: 56px;
-  left: 0;
-  right: 0;
-  background: var(--white);
-  border-radius: 20px 20px 0 0;
-  padding: 12px 20px 28px;
-  z-index: 201;
-  box-shadow: 0 -4px 24px rgba(0,0,0,.15);
-  max-height: 65vh;
-  overflow-y: auto;
-}
+.back-btn:active { background: var(--border); }
 
-.hive-detail-handle {
-  width: 40px;
-  height: 4px;
-  background: var(--border);
-  border-radius: 2px;
-  margin: 0 auto 16px;
-}
-
-.hive-detail-header {
-  display: flex;
+.hive-detail-header-bar .header-top {
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
+}
+
+.hive-detail-name {
+  font-size: 22px;
+  color: var(--agri-green);
+  margin-top: 8px;
+}
+
+/* --- Carte de détail ruche (plein écran dans app-main) --- */
+.hive-detail-card {
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: var(--r);
+  padding: 20px;
   margin-bottom: 16px;
 }
 
-.hive-detail-header h2 { font-size: 20px; margin: 6px 0 4px; }
+.hive-detail-card.green  { border-color: var(--green-light); background: #F0FAF4; }
+.hive-detail-card.orange { border-color: var(--orange);      background: #FFF1DE; }
+.hive-detail-card.red    { border-color: var(--alert-red);   background: #FDECEE; }
 
 .hive-detail-sensors {
   display: grid;
@@ -849,13 +852,6 @@ app-chat {
   .section-title  { font-size: 18px; }
   .kpi h2         { font-size: 26px; }
 }
-
-  /* Panneau détail ruche sur desktop */
-  .hive-detail {
-    left: 220px;
-    bottom: 0;
-    border-radius: 20px 20px 0 0;
-  }
 
 /* --- Large desktop (≥ 1440px) --- */
 @media (min-width: 1440px) {
