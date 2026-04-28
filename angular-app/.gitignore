@@ -1,0 +1,15 @@
+# Dépendances
+node_modules/
+
+# Cache Angular CLI (généré automatiquement, inutile dans git)
+.angular/
+
+# Build de production
+dist/
+
+# Fichiers d'environnement locaux
+*.env
+.env
+
+# Logs
+npm-debug.log*
