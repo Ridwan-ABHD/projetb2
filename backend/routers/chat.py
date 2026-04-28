@@ -79,7 +79,7 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)):
             {"role": "system", "content": _SYSTEM_PROMPT.format(context=context)},
             {"role": "user",   "content": req.message},
         ],
-        max_tokens=500,
+        max_tokens=200,
         temperature=0.7,
     )
 
