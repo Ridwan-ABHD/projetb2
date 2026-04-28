@@ -62,7 +62,7 @@
         <label>Alertes critiques</label>
         <small>Push immédiat</small>
       </div>
-      <span class="toggle" [class.on]="toggles.criticalAlerts" (click)="toggles.criticalAlerts = !toggles.criticalAlerts"></span>
+      <span class="toggle" [class.on]="toggles.criticalAlerts" (click)="toggleCritical()"></span>
     </div>
 
     <div class="setting">
@@ -70,7 +70,7 @@
         <label>Mode silencieux</label>
         <small>22h → 7h</small>
       </div>
-      <span class="toggle" [class.on]="toggles.silentMode" (click)="toggles.silentMode = !toggles.silentMode"></span>
+      <span class="toggle" [class.on]="toggles.silentMode" (click)="toggleSilent()"></span>
     </div>
   </section>
 

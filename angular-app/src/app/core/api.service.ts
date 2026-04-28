@@ -64,8 +64,9 @@ export class ApiService {
     return this.http.get<Hive[]>(`${this.base}/hives/`);
   }
 
-  getAlerts(): Observable<Alert[]> {
-    return this.http.get<Alert[]>(`${this.base}/alerts/`);
+  getAlerts(resolved?: boolean): Observable<Alert[]> {
+    const q = resolved !== undefined ? `?resolved=${resolved}` : '';
+    return this.http.get<Alert[]>(`${this.base}/alerts/${q}`);
   }
 
   getSettings(): Observable<AppSettings> {

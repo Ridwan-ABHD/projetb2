@@ -1,13 +1,9 @@
-// settings.component.ts — Page Paramètres
-// Permet de configurer les seuils d'alerte acoustiques et environnementaux
-
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms'; // Pour [(ngModel)] sur les inputs
+import { FormsModule } from '@angular/forms';
 
 import { ApiService, AppSettings } from '../../core/api.service';
 
-// Valeurs par défaut (identiques à settings.js)
 const DEFAULTS: AppSettings = {
   freq_warning:          260,
   freq_critical:         280,
@@ -27,24 +23,20 @@ const DEFAULTS: AppSettings = {
 export class SettingsComponent implements OnInit {
   private api = inject(ApiService);
 
-  // Valeurs des champs liées aux inputs via [(ngModel)]
   freqWarning  = DEFAULTS.freq_warning;
   freqCritical = DEFAULTS.freq_critical;
   tempWarning  = DEFAULTS.temp_warning;
   humidityMax  = DEFAULTS.humidity_max;
 
-  // État des interrupteurs (toggles) — purement UI, non envoyés au backend
   toggles = {
     criticalAlerts: true,
     silentMode:     false,
   };
 
-  // Feedback affiché après sauvegarde
   feedbackMsg = signal('');
   feedbackOk  = signal(true);
 
   ngOnInit(): void {
-    // Chargement des paramètres actuels depuis le backend
     this.api.getSettings().subscribe({
       next: s => {
         this.freqWarning  = s.freq_warning;
@@ -54,9 +46,24 @@ export class SettingsComponent implements OnInit {
       },
       error: err => console.error('Erreur chargement paramètres :', err),
     });
+
+    // Chargement des toggles depuis localStorage
+    const critical = localStorage.getItem('toggle_critical');
+    const silent   = localStorage.getItem('toggle_silent');
+    this.toggles.criticalAlerts = critical !== 'false';
+    this.toggles.silentMode     = silent   === 'true';
   }
 
-  // Sauvegarde la configuration via PUT /settings/
+  toggleCritical(): void {
+    this.toggles.criticalAlerts = !this.toggles.criticalAlerts;
+    localStorage.setItem('toggle_critical', String(this.toggles.criticalAlerts));
+  }
+
+  toggleSilent(): void {
+    this.toggles.silentMode = !this.toggles.silentMode;
+    localStorage.setItem('toggle_silent', String(this.toggles.silentMode));
+  }
+
   save(): void {
     const settings: AppSettings = {
       ...DEFAULTS,
@@ -67,12 +74,11 @@ export class SettingsComponent implements OnInit {
     };
 
     this.api.saveSettings(settings).subscribe({
-      next: ()  => this.showFeedback('Paramètres enregistrés ✓', true),
+      next: () => this.showFeedback('Paramètres enregistrés ✓', true),
       error: () => this.showFeedback('Erreur lors de la sauvegarde', false),
     });
   }
 
-  // Réinitialise aux valeurs par défaut
   reset(): void {
     this.api.saveSettings(DEFAULTS).subscribe({
       next: () => {
@@ -80,13 +86,16 @@ export class SettingsComponent implements OnInit {
         this.freqCritical = DEFAULTS.freq_critical;
         this.tempWarning  = DEFAULTS.temp_warning;
         this.humidityMax  = DEFAULTS.humidity_max;
+        this.toggles.criticalAlerts = true;
+        this.toggles.silentMode     = false;
+        localStorage.setItem('toggle_critical', 'true');
+        localStorage.setItem('toggle_silent', 'false');
         this.showFeedback('Valeurs réinitialisées ✓', true);
       },
       error: () => this.showFeedback('Erreur lors de la réinitialisation', false),
     });
   }
 
-  // Affiche un message de feedback pendant 2.5 secondes
   private showFeedback(msg: string, ok: boolean): void {
     this.feedbackMsg.set(msg);
     this.feedbackOk.set(ok);
