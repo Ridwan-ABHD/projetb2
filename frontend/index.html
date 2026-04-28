@@ -19,12 +19,12 @@
         </div>
         <button class="icon-btn has-dot" aria-label="Notifications"></button>
       </div>
-      <small>6 ruches surveillées</small>
+      <small id="hive-count">6 ruches surveillées</small>
     </header>
 
     <main class="app-main">
 
-      <div class="alert danger">
+      <div id="alert-banner" class="alert danger">
         <strong>Alerte IA · Ruche n°3</strong>
         <p>Probabilité d'essaimage 85%. Diviser la colonie sous 48h.</p>
       </div>
@@ -35,18 +35,18 @@
         <div class="kpi-grid">
           <div class="kpi-big">
             <small>Fréquence sonore moyenne</small>
-            <h2>247 Hz</h2>
+            <h2 id="kpi-freq">247 Hz</h2>
             <small>+12 Hz · Seuil 250 Hz</small>
           </div>
 
           <div class="kpi">
             <small>Température</small>
-            <h2>34,5°C</h2>
+            <h2 id="kpi-temp">34,5°C</h2>
           </div>
 
           <div class="kpi">
             <small>Humidité</small>
-            <h2>62%</h2>
+            <h2 id="kpi-humidity">62%</h2>
           </div>
         </div>
       </section>
@@ -57,29 +57,15 @@
           <a href="map.html">Tout voir</a>
         </h2>
 
-        <a href="map.html" class="row">
-          <span class="dot dot-green"></span>
-          <div>
-            <strong>Ruche n°1 · La Clairière</strong>
-            <small>242 Hz · 34°C · État normal</small>
-          </div>
-        </a>
-
-        <a href="map.html" class="row">
-          <span class="dot dot-orange"></span>
-          <div>
-            <strong>Ruche n°2 · Verger Sud</strong>
-            <small>258 Hz · 35°C · Risque d'essaimage</small>
-          </div>
-        </a>
-
-        <a href="map.html" class="row">
-          <span class="dot dot-red"></span>
-          <div>
-            <strong>Ruche n°3 · Prairie Est</strong>
-            <small>271 Hz · 36°C · Alerte maladie</small>
-          </div>
-        </a>
+        <div id="hive-list">
+          <a href="map.html" class="row">
+            <span class="dot dot-green"></span>
+            <div>
+              <strong>Ruche n°1 · La Clairière</strong>
+              <small>242 Hz · 34°C · État normal</small>
+            </div>
+          </a>
+        </div>
       </section>
 
     </main>
@@ -90,8 +76,11 @@
       <a href="diag.html"     class="nav-item">Diagnostic</a>
       <a href="history.html"  class="nav-item">Historique</a>
       <a href="settings.html" class="nav-item">Réglages</a>
+      <a href="chat.html"     class="nav-item">Assistant</a>
     </nav>
 
   </div>
+  <script src="api.js"></script>
+  <script src="index.js"></script>
 </body>
 </html>

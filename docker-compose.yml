@@ -1,0 +1,39 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+    networks:
+      - apicole-net
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - MQTT_HOST=mosquitto
+      - MQTT_PORT=1883
+      - HMAC_SECRET=${HMAC_SECRET:-dev_secret}
+      - DATABASE_URL=sqlite:///./apicole.db
+    depends_on:
+      - mosquitto
+    volumes:
+      - ./backend:/app
+    networks:
+      - apicole-net
+
+  frontend:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html
+    networks:
+      - apicole-net
+
+networks:
+  apicole-net:
+    driver: bridge

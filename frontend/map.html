@@ -19,7 +19,7 @@
         </div>
         <button class="icon-btn" aria-label="Filtrer"></button>
       </div>
-      <small>6 ruches · 1 alerte critique</small>
+      <small id="hive-summary">6 ruches · 1 alerte critique</small>
     </header>
 
     <main class="app-main">
@@ -30,63 +30,7 @@
         <span><span class="dot dot-red"></span>Maladie</span>
       </div>
 
-      <section class="hive-grid">
-
-        <a href="diag.html" class="hive green">
-          <header>
-            <span class="badge badge-green">Normal</span>
-          </header>
-          <h3>Ruche n°1</h3>
-          <p>242 Hz</p>
-          <p>34°C · 60%</p>
-        </a>
-
-        <a href="diag.html" class="hive orange">
-          <header>
-            <span class="badge badge-orange">Essaimage</span>
-          </header>
-          <h3>Ruche n°2</h3>
-          <p>258 Hz</p>
-          <p>35°C · 64%</p>
-        </a>
-
-        <a href="diag.html" class="hive red">
-          <header>
-            <span class="badge badge-red">Maladie</span>
-          </header>
-          <h3>Ruche n°3</h3>
-          <p>271 Hz</p>
-          <p>36°C · 71%</p>
-        </a>
-
-        <a href="diag.html" class="hive green">
-          <header>
-            <span class="badge badge-green">Normal</span>
-          </header>
-          <h3>Ruche n°4</h3>
-          <p>238 Hz</p>
-          <p>33°C · 58%</p>
-        </a>
-
-        <a href="diag.html" class="hive green">
-          <header>
-            <span class="badge badge-green">Normal</span>
-          </header>
-          <h3>Ruche n°5</h3>
-          <p>245 Hz</p>
-          <p>34°C · 61%</p>
-        </a>
-
-        <a href="diag.html" class="hive orange">
-          <header>
-            <span class="badge badge-orange">Essaimage</span>
-          </header>
-          <h3>Ruche n°6</h3>
-          <p>253 Hz</p>
-          <p>35°C · 65%</p>
-        </a>
-
-      </section>
+      <section id="hive-grid" class="hive-grid"></section>
 
     </main>
 
@@ -96,8 +40,11 @@
       <a href="diag.html"     class="nav-item">Diagnostic</a>
       <a href="history.html"  class="nav-item">Historique</a>
       <a href="settings.html" class="nav-item">Réglages</a>
+      <a href="chat.html"     class="nav-item">Assistant</a>
     </nav>
 
   </div>
+  <script src="api.js"></script>
+  <script src="map.js"></script>
 </body>
 </html>

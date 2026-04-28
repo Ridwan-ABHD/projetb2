@@ -32,7 +32,7 @@
             <label>Seuil d'alerte essaimage</label>
             <small>Au-dessus, notification push</small>
           </div>
-          <input type="number" value="250" min="100" max="500" />
+          <input id="inp-freq-warning" type="number" value="260" min="100" max="500" />
         </div>
 
         <div class="setting">
@@ -40,7 +40,7 @@
             <label>Seuil critique maladie</label>
             <small>Déclenche une alerte rouge</small>
           </div>
-          <input type="number" value="270" min="100" max="500" />
+          <input id="inp-freq-critical" type="number" value="280" min="100" max="500" />
         </div>
 
         <div class="setting">
@@ -60,7 +60,7 @@
             <label>Température max (°C)</label>
             <small>Stress thermique au-delà</small>
           </div>
-          <input type="number" value="36" min="20" max="50" />
+          <input id="inp-temp-warning" type="number" value="36" min="20" max="50" />
         </div>
 
         <div class="setting">
@@ -68,7 +68,7 @@
             <label>Humidité max (%)</label>
             <small>Risque de moisissure</small>
           </div>
-          <input type="number" value="75" min="30" max="100" />
+          <input id="inp-humidity-max" type="number" value="80" min="30" max="100" />
         </div>
       </section>
 
@@ -120,8 +120,9 @@
         </div>
       </section>
 
-      <button class="btn btn-primary">Enregistrer</button>
-      <button class="btn btn-secondary">Valeurs par défaut</button>
+      <button id="btn-save" class="btn btn-primary">Enregistrer</button>
+      <button id="btn-reset" class="btn btn-secondary">Valeurs par défaut</button>
+      <p id="save-feedback" style="text-align:center;font-size:.875rem;min-height:1.25rem"></p>
 
     </main>
 
@@ -131,8 +132,11 @@
       <a href="diag.html"     class="nav-item">Diagnostic</a>
       <a href="history.html"  class="nav-item">Historique</a>
       <a href="settings.html" class="nav-item active">Réglages</a>
+      <a href="chat.html"     class="nav-item">Assistant</a>
     </nav>
 
   </div>
+  <script src="api.js"></script>
+  <script src="settings.js"></script>
 </body>
 </html>

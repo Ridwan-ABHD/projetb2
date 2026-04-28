@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+
+# Env & secrets
+.env
+*.env
+
+# Base de données
+*.db
+*.sqlite3
+
+# Docker volumes
+data/
+
+# IDE
+.idea/
+.vscode/
+*.swp
