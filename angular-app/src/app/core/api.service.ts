@@ -1,27 +1,43 @@
 // api.service.ts — Service HTTP centralisé
-// Remplace les fonctions get(), post(), put() de l'ancien api.js
 // Toutes les communications avec le backend Python passent par ici
 
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-// ============================================================
-// Interfaces TypeScript — Elles décrivent la forme des données
-// retournées par notre API Python (miroir des modèles Pydantic)
-// ============================================================
-
-export interface Hive {
-  id_ruche: string;        // Anciennement 'id' ou 'name'
-  temperature: number;      // Anciennement 'temperature_c'
-  poids: number;            // Anciennement 'weight_kg'
-  frequence_moyenne?: number; // Correspond à 'frequency_hz'
-  timestamp?: string;
+export interface Alert {
+  id: number;
+  hive_id: number;
+  severity: 'critical' | 'warning' | 'info';
+  type: string;
+  message: string;
+  timestamp: string;
+  is_resolved: boolean;
 }
 
-export interface Alert {
-  nom_regle: string;        // Le type d'alerte (Essaimage, etc.)
-  id_ruche: string;
+export interface Hive {
+  id: number;
+  name: string;
+  location: string;
+  status: 'normal' | 'warning' | 'critical';
+  last_reading: {
+    id: number;
+    frequency_hz: number;
+    temperature_c: number;
+    humidity_pct: number;
+    weight_kg: number;
+    timestamp: string;
+  } | null;
+  active_alerts: Alert[];
+}
+
+export interface DiagnoseResult {
+  hive_name: string;
+  swarming_probability: number;
+  dominant_frequency: number;
+  stress_level: string;
+  duration_seconds: number;
+  recommendation: string;
 }
 
 export interface AppSettings {
@@ -29,28 +45,20 @@ export interface AppSettings {
   freq_critical: number;
   temp_warning: number;
   temp_critical: number;
+  humidity_min: number;
+  humidity_max: number;
+  weight_drop_threshold: number;
 }
-// Garde le reste du service avec ces noms
 
-export interface DiagnoseResult {
-  hive_id: string;
-  swarming_probability: number;
-  dominant_frequency: number;
-  stress_level: string;
-  recommendation: string;
-}
 export interface ChatResponse {
   response: string;
 }
 
-// ============================================================
-// Service Injectable — Angular le crée une seule fois (singleton)
-// ============================================================
-
+// Base vide = chemins relatifs → nginx proxy vers backend en prod Docker
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private http = inject(HttpClient);
-  private base = 'http://127.0.0.1:8000'; // Port par défaut de FastAPI
+  private base = '';
 
   getHives(): Observable<Hive[]> {
     return this.http.get<Hive[]>(`${this.base}/hives/`);
@@ -60,12 +68,12 @@ export class ApiService {
     return this.http.get<Alert[]>(`${this.base}/alerts/`);
   }
 
-  // Utilise string pour hiveId car c'est "CF003"
-  diagnose(hiveId: string, durationSeconds: number): Observable<DiagnoseResult> {
-    return this.http.post<DiagnoseResult>(`${this.base}/diagnose/`, {
-      hive_id: hiveId,
-      duration_seconds: durationSeconds,
-    });
+  getSettings(): Observable<AppSettings> {
+    return this.http.get<AppSettings>(`${this.base}/settings/`);
+  }
+
+  saveSettings(settings: AppSettings): Observable<AppSettings> {
+    return this.http.put<AppSettings>(`${this.base}/settings/`, settings);
   }
 
   chat(message: string): Observable<ChatResponse> {

@@ -17,11 +17,10 @@ export class BottomNavComponent {
   // Liste des onglets de navigation
   // Pour ajouter un onglet : ajouter un objet ici, le composant se met à jour automatiquement
   navItems = [
-    { path: '/dashboard', label: 'Accueil',    icon: '🏠' },
-    { path: '/map',       label: 'Ruches',      icon: '🐝' },
-    { path: '/diag',      label: 'Diagnostic',  icon: '🔬' },
-    { path: '/history',   label: 'Historique',  icon: '📋' },
-    { path: '/settings',  label: 'Réglages',    icon: '⚙️' },
-    { path: '/chat',      label: 'Assistant',   icon: '💬' },
+    { path: '/dashboard', label: 'Accueil',   icon: '🏠' },
+    { path: '/map',       label: 'Ruches',    icon: '🐝' },
+    { path: '/history',   label: 'Historique', icon: '📋' },
+    { path: '/settings',  label: 'Réglages',  icon: '⚙️' },
+    { path: '/chat',      label: 'Assistant', icon: '💬' },
   ];
 }

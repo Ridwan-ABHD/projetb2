@@ -1,12 +1,13 @@
 // history.component.ts — Page Historique
-// Affiche le journal des alertes groupées par jour avec filtrage par type
+// Affiche le journal des alertes groupées par jour avec filtrage par sévérité
 
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { forkJoin, interval, Subscription } from 'rxjs';
+import { switchMap, startWith } from 'rxjs/operators';
 
-import { ApiService, Alert } from '../../core/api.service';
+import { ApiService, Alert, Hive } from '../../core/api.service';
 
-// Type interne pour grouper les alertes par jour
 interface DayGroup {
   day: string;
   items: Alert[];
@@ -18,59 +19,83 @@ interface DayGroup {
   imports: [CommonModule],
   templateUrl: './history.component.html',
 })
-export class HistoryComponent implements OnInit {
+export class HistoryComponent implements OnInit, OnDestroy {
   private api = inject(ApiService);
+  private refreshSub?: Subscription;
 
-  allGroups    = signal<DayGroup[]>([]); // Toutes les alertes groupées par jour
-  activeFilter = signal('all');          // Filtre actif : 'all' | 'critical' | 'warning' | 'info'
+  allGroups    = signal<DayGroup[]>([]);
+  hiveNames    = signal<Record<number, string>>({});
+  activeFilter = signal('all');
   hasNoAlerts  = signal(false);
 
-  // computed() recalcule automatiquement quand allGroups ou activeFilter change
   filteredGroups = computed(() => {
     const filter = this.activeFilter();
     const groups = this.allGroups();
-
     if (filter === 'all') return groups;
 
-    // Correspondance chip → severity API
     const severityMap: Record<string, string> = {
-      alerts:      'critical',
-      diagnostics: 'warning',
-      sensors:     'info',
+      critical: 'critical',
+      warning:  'warning',
+      info:     'info',
+      resolved: 'resolved',
     };
     const severity = severityMap[filter];
 
+    if (severity === 'resolved') {
+      return groups
+        .map(g => ({ ...g, items: g.items.filter(i => i.is_resolved) }))
+        .filter(g => g.items.length > 0);
+    }
+
     return groups
-      .map(g => ({ ...g, items: g.items.filter(i => i.severity === severity) }))
+      .map(g => ({ ...g, items: g.items.filter(i => i.severity === severity && !i.is_resolved) }))
       .filter(g => g.items.length > 0);
   });
 
   ngOnInit(): void {
-    this.api.getAlerts().subscribe({
-      next: alerts => {
+    this.load();
+    // Rafraîchissement automatique toutes les 30 secondes
+    this.refreshSub = interval(30_000).subscribe(() => this.load());
+  }
+
+  ngOnDestroy(): void {
+    this.refreshSub?.unsubscribe();
+  }
+
+  private load(): void {
+    forkJoin({
+      alerts: this.api.getAlerts(),
+      hives:  this.api.getHives(),
+    }).subscribe({
+      next: ({ alerts, hives }) => {
+        const names: Record<number, string> = {};
+        hives.forEach(h => names[h.id] = h.name);
+        this.hiveNames.set(names);
+
         if (alerts.length === 0) {
           this.hasNoAlerts.set(true);
           return;
         }
+        this.hasNoAlerts.set(false);
         this.allGroups.set(this.groupByDay(alerts));
       },
       error: err => console.error('Erreur chargement historique :', err),
     });
   }
 
-  // Change le filtre actif (appelé au clic sur un chip)
   setFilter(filter: string): void {
     this.activeFilter.set(filter);
   }
 
-  // Regroupe un tableau d'alertes par date (format "lundi 28 avril")
+  hiveName(hiveId: number): string {
+    return this.hiveNames()[hiveId] ?? `Ruche n°${hiveId}`;
+  }
+
   private groupByDay(alerts: Alert[]): DayGroup[] {
     const groups: Record<string, Alert[]> = {};
     for (const a of alerts) {
       const day = new Date(a.timestamp).toLocaleDateString('fr-FR', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
+        weekday: 'long', day: 'numeric', month: 'long',
       });
       if (!groups[day]) groups[day] = [];
       groups[day].push(a);
@@ -78,27 +103,22 @@ export class HistoryComponent implements OnInit {
     return Object.entries(groups).map(([day, items]) => ({ day, items }));
   }
 
-  // Classe CSS de la barre de couleur latérale selon la sévérité
-  barClass(severity: string): string {
-    const map: Record<string, string> = {
-      critical: 'alert',
-      warning:  'warn',
-      info:     'info',
-    };
-    return map[severity] ?? 'ok';
+  barClass(alert: Alert): string {
+    if (alert.is_resolved) return 'ok';
+    const map: Record<string, string> = { critical: 'alert', warning: 'warn', info: 'info' };
+    return map[alert.severity] ?? 'ok';
   }
 
-  // Texte lisible de la sévérité
-  severityLabel(severity: string): string {
+  severityLabel(alert: Alert): string {
+    if (alert.is_resolved) return '✅ Résolu';
     const map: Record<string, string> = {
-      critical: 'Alerte critique',
-      warning:  'Avertissement',
-      info:     'Info',
+      critical: '🔴 Critique',
+      warning:  '🟡 Avertissement',
+      info:     '🔵 Info',
     };
-    return map[severity] ?? severity;
+    return map[alert.severity] ?? alert.severity;
   }
 
-  // Calcule le temps écoulé depuis une date ISO (ex: "Il y a 3h")
   timeAgo(iso: string): string {
     const diff = Date.now() - new Date(iso).getTime();
     const min  = Math.floor(diff / 60_000);
@@ -106,6 +126,6 @@ export class HistoryComponent implements OnInit {
     if (min < 60) return `Il y a ${min} min`;
     const h = Math.floor(min / 60);
     if (h < 24)   return `Il y a ${h}h`;
-    return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+    return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
   }
 }

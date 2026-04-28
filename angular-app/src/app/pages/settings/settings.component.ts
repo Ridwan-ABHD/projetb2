@@ -36,9 +36,7 @@ export class SettingsComponent implements OnInit {
   // État des interrupteurs (toggles) — purement UI, non envoyés au backend
   toggles = {
     criticalAlerts: true,
-    dailySummary:   true,
     silentMode:     false,
-    cloudSync:      true,
   };
 
   // Feedback affiché après sauvegarde

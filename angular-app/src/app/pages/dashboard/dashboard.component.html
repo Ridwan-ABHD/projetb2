@@ -5,12 +5,8 @@
       <small>Bonjour, Ridwan 👋</small>
       <h1>BeeGuard AI</h1>
     </div>
-    <!-- Bouton notifications avec point rouge si alerte active -->
-    <button
-      class="icon-btn"
-      [class.has-dot]="criticalAlert() !== null"
-      aria-label="Notifications"
-    >🔔</button>
+    <!-- Lien vers l'assistant IA -->
+    <a routerLink="/chat" class="icon-btn" aria-label="Assistant IA">💬</a>
   </div>
   <!-- hives().length lit la valeur du signal "hives" -->
   <small>{{ hives().length }} ruche{{ hives().length > 1 ? 's' : '' }} surveillée{{ hives().length > 1 ? 's' : '' }}</small>

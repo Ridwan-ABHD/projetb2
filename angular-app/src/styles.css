@@ -403,12 +403,89 @@ app-chat {
   margin-bottom: 12px;
 }
 
-.hive h3 { font-size: 15px; margin-bottom: 8px; }
+.hive h3 { font-size: 15px; margin-bottom: 4px; }
 .hive p  { font-size: 12px; color: var(--muted); }
+.hive-location { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
 
 .hive.green  { border-color: var(--green-light); background: #F0FAF4; }
 .hive.orange { border-color: var(--orange);      background: #FFF1DE; }
 .hive.red    { border-color: var(--alert-red);   background: #FDECEE; }
+
+.hive.hive-selected { opacity: 0.8; transform: scale(0.97); }
+.hive { cursor: pointer; }
+
+/* --- Panneau de détail ruche --- */
+.hive-detail-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+  z-index: 200;
+}
+
+.hive-detail {
+  position: fixed;
+  bottom: 56px;
+  left: 0;
+  right: 0;
+  background: var(--white);
+  border-radius: 20px 20px 0 0;
+  padding: 12px 20px 28px;
+  z-index: 201;
+  box-shadow: 0 -4px 24px rgba(0,0,0,.15);
+  max-height: 65vh;
+  overflow-y: auto;
+}
+
+.hive-detail-handle {
+  width: 40px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 0 auto 16px;
+}
+
+.hive-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.hive-detail-header h2 { font-size: 20px; margin: 6px 0 4px; }
+
+.hive-detail-sensors {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.sensor-item {
+  background: var(--soft);
+  border-radius: var(--r);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sensor-item small  { font-size: 11px; color: var(--muted); }
+.sensor-item strong { font-size: 20px; font-weight: 700; }
+
+.hive-detail-time {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+
+.hive-detail-alerts h4 {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
 
 /* --- Diagnostic IA --- */
 .hero {
@@ -772,6 +849,13 @@ app-chat {
   .section-title  { font-size: 18px; }
   .kpi h2         { font-size: 26px; }
 }
+
+  /* Panneau détail ruche sur desktop */
+  .hive-detail {
+    left: 220px;
+    bottom: 0;
+    border-radius: 20px 20px 0 0;
+  }
 
 /* --- Large desktop (≥ 1440px) --- */
 @media (min-width: 1440px) {

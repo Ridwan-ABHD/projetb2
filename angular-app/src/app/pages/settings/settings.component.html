@@ -5,9 +5,8 @@
       <small>Configuration</small>
       <h1>Paramètres</h1>
     </div>
-    <button class="icon-btn" aria-label="Profil">👤</button>
   </div>
-  <small>Seuils, alertes & connexions</small>
+  <small>Seuils et alertes</small>
 </header>
 
 <main class="app-main">
@@ -21,7 +20,6 @@
         <label>Seuil d'alerte essaimage</label>
         <small>Au-dessus, notification push</small>
       </div>
-      <!-- [(ngModel)] : l'input lit et écrit freqWarning automatiquement -->
       <input type="number" [(ngModel)]="freqWarning" min="100" max="500" />
     </div>
 
@@ -55,7 +53,7 @@
     </div>
   </section>
 
-  <!-- Groupe : Notifications (toggles visuels) -->
+  <!-- Groupe : Notifications -->
   <section class="group">
     <h2>Notifications</h2>
 
@@ -64,16 +62,7 @@
         <label>Alertes critiques</label>
         <small>Push immédiat</small>
       </div>
-      <!-- (click) bascule la valeur du toggle — [class.on] applique le style actif -->
       <span class="toggle" [class.on]="toggles.criticalAlerts" (click)="toggles.criticalAlerts = !toggles.criticalAlerts"></span>
-    </div>
-
-    <div class="setting">
-      <div>
-        <label>Synthèse quotidienne</label>
-        <small>Tous les jours à 20h</small>
-      </div>
-      <span class="toggle" [class.on]="toggles.dailySummary" (click)="toggles.dailySummary = !toggles.dailySummary"></span>
     </div>
 
     <div class="setting">
@@ -92,22 +81,13 @@
     <div class="setting">
       <div>
         <label>Profil</label>
-        <small>ridwan&#64;apiculture.fr</small>
+        <small>test</small>
       </div>
       <span class="value">Modifier</span>
-    </div>
-
-    <div class="setting">
-      <div>
-        <label>Synchronisation cloud</label>
-        <small>Il y a 4 min</small>
-      </div>
-      <span class="toggle" [class.on]="toggles.cloudSync" (click)="toggles.cloudSync = !toggles.cloudSync"></span>
     </div>
   </section>
 
   <!-- Actions -->
-  <!-- (click) appelle la méthode save() du composant -->
   <button id="btn-save" class="btn btn-primary" (click)="save()">
     💾 Enregistrer
   </button>
@@ -115,9 +95,9 @@
     Valeurs par défaut
   </button>
 
-  <!-- Message de feedback (affiché 2.5s après la sauvegarde) -->
   @if (feedbackMsg()) {
-    <p style="text-align: center; font-size: 0.875rem;" [style.color]="feedbackOk() ? 'var(--agri-green)' : 'var(--alert-red)'">
+    <p style="text-align: center; font-size: 0.875rem;"
+       [style.color]="feedbackOk() ? 'var(--agri-green)' : 'var(--alert-red)'">
       {{ feedbackMsg() }}
     </p>
   }

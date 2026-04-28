@@ -22,13 +22,6 @@ export const routes: Routes = [
       import('./pages/map/map.component').then(m => m.MapComponent),
   },
 
-  // Page diagnostic IA — Analyse acoustique
-  {
-    path: 'diag',
-    loadComponent: () =>
-      import('./pages/diag/diag.component').then(m => m.DiagComponent),
-  },
-
   // Page historique — Journal des alertes
   {
     path: 'history',

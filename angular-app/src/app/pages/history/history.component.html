@@ -5,21 +5,19 @@
       <small>Journal</small>
       <h1>Historique</h1>
     </div>
-    <button class="icon-btn" aria-label="Exporter">📤</button>
   </div>
-  <small>Alertes & diagnostics des 7 derniers jours</small>
+  <small>Alertes des 7 derniers jours · mise à jour auto</small>
 </header>
 
 <main class="app-main">
 
   <!-- Chips de filtrage -->
-  <!-- (click) appelle setFilter() qui met à jour le signal activeFilter -->
-  <!-- [class.active] ajoute la classe "active" si le filtre correspond -->
   <div class="chips">
-    <button class="chip" [class.active]="activeFilter() === 'all'"         (click)="setFilter('all')">Tous</button>
-    <button class="chip" [class.active]="activeFilter() === 'alerts'"      (click)="setFilter('alerts')">🔴 Alertes</button>
-    <button class="chip" [class.active]="activeFilter() === 'diagnostics'" (click)="setFilter('diagnostics')">🟡 Diagnostics</button>
-    <button class="chip" [class.active]="activeFilter() === 'sensors'"     (click)="setFilter('sensors')">🔵 Capteurs</button>
+    <button class="chip" [class.active]="activeFilter() === 'all'"      (click)="setFilter('all')">Tous</button>
+    <button class="chip" [class.active]="activeFilter() === 'critical'" (click)="setFilter('critical')">🔴 Critiques</button>
+    <button class="chip" [class.active]="activeFilter() === 'warning'"  (click)="setFilter('warning')">🟡 Avertissements</button>
+    <button class="chip" [class.active]="activeFilter() === 'info'"     (click)="setFilter('info')">🔵 Info</button>
+    <button class="chip" [class.active]="activeFilter() === 'resolved'" (click)="setFilter('resolved')">✅ Résolues</button>
   </div>
 
   <!-- Message si aucune alerte -->
@@ -27,34 +25,25 @@
     <p class="empty-state">Aucune alerte enregistrée. Vos ruches vont bien ! 🌿</p>
   }
 
-  <!-- Liste des groupes de jours -->
-  <!-- filteredGroups() est un "computed" signal : recalculé si le filtre change -->
+  <!-- Liste des groupes par jour -->
   @for (group of filteredGroups(); track group.day) {
     <section class="day">
-
-      <!-- En-tête du groupe (jour) -->
       <h2>{{ group.day }}</h2>
 
-      <!-- Liste des événements du jour -->
       @for (alert of group.items; track alert.id) {
         <article class="event">
-
-          <!-- Barre de couleur latérale selon la sévérité -->
-          <span class="event-bar" [ngClass]="barClass(alert.severity)"></span>
-
+          <span class="event-bar" [ngClass]="barClass(alert)"></span>
           <div class="event-body">
-            <h3>{{ severityLabel(alert.severity) }} — Ruche n°{{ alert.hive_id }}</h3>
+            <h3>{{ severityLabel(alert) }} — {{ hiveName(alert.hive_id) }}</h3>
             <p>{{ alert.message }}</p>
             <time>{{ timeAgo(alert.timestamp) }}</time>
           </div>
-
         </article>
       }
 
     </section>
   }
 
-  <!-- Message si le filtre ne retourne rien -->
   @if (filteredGroups().length === 0 && !hasNoAlerts()) {
     <p class="empty-state">Aucun événement pour ce filtre.</p>
   }
