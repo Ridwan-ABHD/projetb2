@@ -1,0 +1,19 @@
+<!-- Barre de navigation fixe en bas de l'écran -->
+<nav class="bottom-nav">
+
+  <!-- @for = boucle Angular 17+ (remplace *ngFor) -->
+  <!-- track item.path : optimise le rendu (Angular sait quel élément a changé) -->
+  @for (item of navItems; track item.path) {
+    <a
+      [routerLink]="item.path"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      class="nav-item"
+      [attr.aria-label]="item.label"
+    >
+      <span class="nav-icon">{{ item.icon }}</span>
+      <span class="nav-label">{{ item.label }}</span>
+    </a>
+  }
+
+</nav>

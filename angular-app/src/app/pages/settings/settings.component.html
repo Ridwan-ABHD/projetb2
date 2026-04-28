@@ -1,0 +1,125 @@
+<!-- En-tête de la page Paramètres -->
+<header class="app-header">
+  <div class="header-top">
+    <div>
+      <small>Configuration</small>
+      <h1>Paramètres</h1>
+    </div>
+    <button class="icon-btn" aria-label="Profil">👤</button>
+  </div>
+  <small>Seuils, alertes & connexions</small>
+</header>
+
+<main class="app-main">
+
+  <!-- Groupe : Seuils acoustiques -->
+  <section class="group">
+    <h2>Seuils acoustiques (Hz)</h2>
+
+    <div class="setting">
+      <div>
+        <label>Seuil d'alerte essaimage</label>
+        <small>Au-dessus, notification push</small>
+      </div>
+      <!-- [(ngModel)] : l'input lit et écrit freqWarning automatiquement -->
+      <input type="number" [(ngModel)]="freqWarning" min="100" max="500" />
+    </div>
+
+    <div class="setting">
+      <div>
+        <label>Seuil critique maladie</label>
+        <small>Déclenche une alerte rouge</small>
+      </div>
+      <input type="number" [(ngModel)]="freqCritical" min="100" max="500" />
+    </div>
+  </section>
+
+  <!-- Groupe : Environnement -->
+  <section class="group">
+    <h2>Environnement</h2>
+
+    <div class="setting">
+      <div>
+        <label>Température max (°C)</label>
+        <small>Stress thermique au-delà</small>
+      </div>
+      <input type="number" [(ngModel)]="tempWarning" min="20" max="50" />
+    </div>
+
+    <div class="setting">
+      <div>
+        <label>Humidité max (%)</label>
+        <small>Risque de moisissure</small>
+      </div>
+      <input type="number" [(ngModel)]="humidityMax" min="30" max="100" />
+    </div>
+  </section>
+
+  <!-- Groupe : Notifications (toggles visuels) -->
+  <section class="group">
+    <h2>Notifications</h2>
+
+    <div class="setting">
+      <div>
+        <label>Alertes critiques</label>
+        <small>Push immédiat</small>
+      </div>
+      <!-- (click) bascule la valeur du toggle — [class.on] applique le style actif -->
+      <span class="toggle" [class.on]="toggles.criticalAlerts" (click)="toggles.criticalAlerts = !toggles.criticalAlerts"></span>
+    </div>
+
+    <div class="setting">
+      <div>
+        <label>Synthèse quotidienne</label>
+        <small>Tous les jours à 20h</small>
+      </div>
+      <span class="toggle" [class.on]="toggles.dailySummary" (click)="toggles.dailySummary = !toggles.dailySummary"></span>
+    </div>
+
+    <div class="setting">
+      <div>
+        <label>Mode silencieux</label>
+        <small>22h → 7h</small>
+      </div>
+      <span class="toggle" [class.on]="toggles.silentMode" (click)="toggles.silentMode = !toggles.silentMode"></span>
+    </div>
+  </section>
+
+  <!-- Groupe : Compte -->
+  <section class="group">
+    <h2>Compte</h2>
+
+    <div class="setting">
+      <div>
+        <label>Profil</label>
+        <small>ridwan&#64;apiculture.fr</small>
+      </div>
+      <span class="value">Modifier</span>
+    </div>
+
+    <div class="setting">
+      <div>
+        <label>Synchronisation cloud</label>
+        <small>Il y a 4 min</small>
+      </div>
+      <span class="toggle" [class.on]="toggles.cloudSync" (click)="toggles.cloudSync = !toggles.cloudSync"></span>
+    </div>
+  </section>
+
+  <!-- Actions -->
+  <!-- (click) appelle la méthode save() du composant -->
+  <button id="btn-save" class="btn btn-primary" (click)="save()">
+    💾 Enregistrer
+  </button>
+  <button id="btn-reset" class="btn btn-secondary" (click)="reset()">
+    Valeurs par défaut
+  </button>
+
+  <!-- Message de feedback (affiché 2.5s après la sauvegarde) -->
+  @if (feedbackMsg()) {
+    <p style="text-align: center; font-size: 0.875rem;" [style.color]="feedbackOk() ? 'var(--agri-green)' : 'var(--alert-red)'">
+      {{ feedbackMsg() }}
+    </p>
+  }
+
+</main>

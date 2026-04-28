@@ -1,0 +1,75 @@
+<!-- En-tête de la page Ruches -->
+<header class="app-header">
+  <div class="header-top">
+    <div>
+      <small>Vue d'ensemble</small>
+      <h1>Mes Ruches</h1>
+    </div>
+    <button class="icon-btn" aria-label="Filtrer">⚙️</button>
+  </div>
+  <small>
+    {{ hives().length }} ruches ·
+    {{ alertCount }} alerte{{ alertCount > 1 ? 's' : '' }}
+  </small>
+</header>
+
+<main class="app-main">
+
+  <!-- Légende des couleurs -->
+  <div class="legend">
+    <span><span class="dot dot-green"></span> Normal</span>
+    <span><span class="dot dot-orange"></span> Essaimage</span>
+    <span><span class="dot dot-red"></span> Maladie</span>
+  </div>
+
+  <!-- Grille des ruches -->
+  <section class="hive-grid">
+
+    @for (hive of hives(); track hive.id) {
+      <!--
+        [routerLink] + [queryParams] = navigation vers /diag?hive=3
+        [ngClass] = applique la classe de couleur (green / orange / red)
+      -->
+      <a
+        [routerLink]="['/diag']"
+        [queryParams]="{ hive: hive.id }"
+        class="hive"
+        [ngClass]="hiveColorClass(hive.status)"
+      >
+        <!-- Badge statut en haut à droite -->
+        <header>
+          <span class="badge" [ngClass]="hiveBadgeClass(hive.status)">
+            {{ hiveStatusLabel(hive.status) }}
+          </span>
+        </header>
+
+        <h3>{{ hive.name }}</h3>
+
+        <!-- Fréquence acoustique -->
+        <p>
+          @if (hive.last_reading) {
+            {{ hive.last_reading.frequency_hz | number:'1.0-0' }} Hz
+          } @else {
+            — Hz
+          }
+        </p>
+
+        <!-- Température et humidité -->
+        <p>
+          @if (hive.last_reading) {
+            {{ hive.last_reading.temperature_c | number:'1.1-1' }}°C ·
+            {{ hive.last_reading.humidity_pct  | number:'1.0-0' }}%
+          } @else {
+            — · —
+          }
+        </p>
+      </a>
+    }
+
+    @if (hives().length === 0) {
+      <p class="empty-state" style="grid-column: 1/-1;">Chargement…</p>
+    }
+
+  </section>
+
+</main>

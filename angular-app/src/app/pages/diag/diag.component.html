@@ -1,0 +1,121 @@
+<!-- En-tête de la page Diagnostic -->
+<header class="app-header">
+  <div class="header-top">
+    <div>
+      <small>Module IA</small>
+      <h1>Diagnostic</h1>
+    </div>
+    <button class="icon-btn" aria-label="Aide">❓</button>
+  </div>
+  <small>Analyse acoustique intelligente</small>
+</header>
+
+<main class="app-main">
+
+  <!-- Hero section avec effet gradient et ondes sonores CSS -->
+  <div class="hero">
+    <h2>🎵 Analyse acoustique IA</h2>
+    <p>
+      Le modèle écoute le vrombissement des abeilles pour détecter
+      essaimage, maladies ou stress avant qu'ils ne soient visibles.
+    </p>
+  </div>
+
+  <!-- Formulaire de sélection -->
+
+  <!-- Sélection de la ruche -->
+  <!-- [(ngModel)] = liaison bidirectionnelle : Angular lit ET écrit selectedHiveId -->
+  <div class="field">
+    <label for="hive">Ruche à analyser</label>
+    <select id="hive" [(ngModel)]="selectedHiveId">
+      @for (hive of hives; track hive.id) {
+        <option [value]="hive.id">{{ hive.name }} · {{ hive.location }}</option>
+      }
+    </select>
+  </div>
+
+  <!-- Durée d'écoute -->
+  <div class="field">
+    <label for="duration">Durée d'écoute (secondes)</label>
+    <input
+      id="duration"
+      type="number"
+      [(ngModel)]="duration"
+      min="10"
+      max="120"
+    />
+  </div>
+
+  <!-- Bouton de lancement -->
+  <!-- [disabled]="loading()" désactive le bouton pendant l'analyse -->
+  <button
+    id="btn-diagnose"
+    class="btn btn-primary"
+    (click)="diagnose()"
+    [disabled]="loading()"
+  >
+    @if (loading()) {
+      ⏳ Analyse en cours…
+    } @else {
+      🔬 Lancer une analyse
+    }
+  </button>
+
+  <!-- Loader animé (barres sonores) — visible uniquement pendant l'analyse -->
+  @if (loading()) {
+    <div class="loader">
+      <div class="loader-bars">
+        <!-- Les 5 barres sont animées par le CSS @keyframes soundwave -->
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <small>L'IA analyse le spectre acoustique de la ruche…</small>
+    </div>
+  }
+
+  <!-- Résultat de l'analyse IA — visible une fois l'analyse terminée -->
+  @if (result()) {
+    <div class="result">
+
+      <!-- En-tête du résultat -->
+      <header>
+        <span class="badge badge-green">IA</span>
+        <h3>{{ result()!.hive_name }} · Résultat</h3>
+      </header>
+
+      <!-- Données structurées -->
+      <dl>
+        <div>
+          <dt>Probabilité d'essaimage</dt>
+          <!-- [class.warn] ajoute la classe "warn" si la condition est vraie -->
+          <dd [class.warn]="isHighProbability()">
+            {{ result()!.swarming_probability }} %
+          </dd>
+        </div>
+        <div>
+          <dt>Fréquence dominante</dt>
+          <dd>{{ result()!.dominant_frequency | number:'1.0-0' }} Hz</dd>
+        </div>
+        <div>
+          <dt>Niveau de stress</dt>
+          <dd [class.warn]="isStressed()">{{ result()!.stress_level }}</dd>
+        </div>
+        <div>
+          <dt>Durée analysée</dt>
+          <dd>{{ result()!.duration_seconds }} s</dd>
+        </div>
+      </dl>
+
+      <!-- Recommandation de l'IA -->
+      <div class="reco">
+        <strong>Action recommandée</strong>
+        <span>{{ result()!.recommendation }}</span>
+      </div>
+
+    </div>
+  }
+
+</main>

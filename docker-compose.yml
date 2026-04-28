@@ -1,4 +1,8 @@
 services:
+
+  # =====================================================
+  # Broker MQTT — Gestion des messages des capteurs
+  # =====================================================
   mosquitto:
     image: eclipse-mosquitto:2
     ports:
@@ -9,6 +13,9 @@ services:
     networks:
       - apicole-net
 
+  # =====================================================
+  # Backend Python FastAPI
+  # =====================================================
   backend:
     build: ./backend
     ports:
@@ -25,12 +32,16 @@ services:
     networks:
       - apicole-net
 
+  # =====================================================
+  # Frontend Angular (build multi-étapes + Nginx)
+  # Remplace l'ancien service nginx:alpine avec fichiers statiques
+  # =====================================================
   frontend:
-    image: nginx:alpine
+    build: ./angular-app   # Build l'image depuis angular-app/Dockerfile
     ports:
       - "80:80"
-    volumes:
-      - ./frontend:/usr/share/nginx/html
+    depends_on:
+      - backend
     networks:
       - apicole-net
 

@@ -1,0 +1,67 @@
+<!-- En-tête de la page Chat -->
+<header class="app-header">
+  <div class="header-top">
+    <div>
+      <small>Intelligence Artificielle</small>
+      <h1>Assistant Apicole</h1>
+    </div>
+  </div>
+  <small>Posez vos questions sur vos ruches</small>
+</header>
+
+<main class="app-main">
+
+  <!-- Boutons de questions rapides -->
+  <div class="suggestions">
+    <!-- (click) appelle sendMessage() avec la question prédéfinie -->
+    @for (s of suggestions; track s.label) {
+      <button class="suggestion" (click)="sendMessage(s.q)">
+        {{ s.label }}
+      </button>
+    }
+  </div>
+
+  <!-- Zone de messages — #chatWrap permet à ViewChild de le trouver -->
+  <div id="chat-wrap" class="chat-wrap" #chatWrap>
+
+    @for (msg of messages(); track $index) {
+      <!--
+        [ngClass] applique dynamiquement les classes :
+        - "user"   si le message vient de l'utilisateur (bulle verte à droite)
+        - "bot"    si le message vient de l'IA (bulle grise à gauche)
+        - "typing" si l'IA est en train de répondre (opacité réduite)
+      -->
+      <div class="bubble"
+           [ngClass]="{
+             'user':   msg.role === 'user',
+             'bot':    msg.role === 'bot',
+             'typing': msg.typing === true
+           }">
+        {{ msg.text }}
+      </div>
+    }
+
+  </div>
+
+  <!-- Formulaire de saisie -->
+  <!-- (ngSubmit) est déclenché par le bouton de type submit ou la touche Entrée -->
+  <form class="chat-form" (ngSubmit)="sendMessage()">
+
+    <!-- [(ngModel)] lie le champ à la propriété inputText du composant -->
+    <input
+      id="chat-input"
+      type="text"
+      [(ngModel)]="inputText"
+      name="message"
+      placeholder="Votre question…"
+      autocomplete="off"
+      [disabled]="sending"
+    />
+
+    <button type="submit" [disabled]="sending">
+      {{ sending ? '…' : 'Envoyer' }}
+    </button>
+
+  </form>
+
+</main>
