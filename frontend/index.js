@@ -35,7 +35,7 @@ async function load() {
       ? `${r.frequency_hz.toFixed(0)} Hz · ${r.temperature_c.toFixed(1)}°C · ${STATUS_LABEL[h.status]}`
       : STATUS_LABEL[h.status];
     return `
-      <a href="map.html" class="row">
+      <a href="map" class="row">
         <span class="dot dot-${color}"></span>
         <div>
           <strong>${h.name} · ${h.location}</strong>

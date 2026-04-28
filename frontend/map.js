@@ -17,7 +17,7 @@ async function load() {
     const freq = r ? `${r.frequency_hz.toFixed(0)} Hz` : "—";
     const env  = r ? `${r.temperature_c.toFixed(1)}°C · ${r.humidity_pct.toFixed(0)}%` : "—";
     return `
-      <a href="diag.html?hive=${h.id}" class="hive ${color}">
+      <a href="diag?hive=${h.id}" class="hive ${color}">
         <header><span class="badge ${badge}">${label}</span></header>
         <h3>${h.name}</h3>
         <p>${freq}</p>
