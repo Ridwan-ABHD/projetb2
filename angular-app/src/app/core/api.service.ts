@@ -12,44 +12,33 @@ import { Observable } from 'rxjs';
 // ============================================================
 
 export interface Hive {
-  id: number;
-  name: string;
-  location: string;
-  status: 'normal' | 'warning' | 'critical';
-  last_reading: {
-    frequency_hz: number;
-    temperature_c: number;
-    humidity_pct: number;
-  } | null;
+  id_ruche: string;        // Anciennement 'id' ou 'name'
+  temperature: number;      // Anciennement 'temperature_c'
+  poids: number;            // Anciennement 'weight_kg'
+  frequence_moyenne?: number; // Correspond à 'frequency_hz'
+  timestamp?: string;
 }
 
 export interface Alert {
-  id: number;
-  hive_id: number;
-  severity: 'critical' | 'warning' | 'info';
-  message: string;
-  timestamp: string; // Format ISO 8601 ex: "2024-04-28T14:30:00"
-}
-
-export interface DiagnoseResult {
-  hive_name: string;
-  swarming_probability: number; // 0 à 100 (%)
-  dominant_frequency: number;   // en Hz
-  stress_level: string;         // ex: "Normal", "Élevé"
-  duration_seconds: number;
-  recommendation: string;
+  nom_regle: string;        // Le type d'alerte (Essaimage, etc.)
+  id_ruche: string;
 }
 
 export interface AppSettings {
-  freq_warning: number;          // Seuil alerte essaimage (Hz)
-  freq_critical: number;         // Seuil alerte maladie (Hz)
-  temp_warning: number;          // Température max (°C)
+  freq_warning: number;
+  freq_critical: number;
+  temp_warning: number;
   temp_critical: number;
-  humidity_min: number;
-  humidity_max: number;
-  weight_drop_threshold: number;
 }
+// Garde le reste du service avec ces noms
 
+export interface DiagnoseResult {
+  hive_id: string;
+  swarming_probability: number;
+  dominant_frequency: number;
+  stress_level: string;
+  recommendation: string;
+}
 export interface ChatResponse {
   response: string;
 }
@@ -60,44 +49,25 @@ export interface ChatResponse {
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
-  // inject() est la façon moderne Angular 18 d'obtenir un service
-  // C'est équivalent à écrire constructor(private http: HttpClient) {}
   private http = inject(HttpClient);
+  private base = 'http://127.0.0.1:8000'; // Port par défaut de FastAPI
 
-  // Base URL vide = chemins relatifs
-  // En développement : le proxy redirige vers localhost:8000
-  // En production (Docker) : nginx redirige vers le backend
-  private base = '';
-
-  // --- Récupère toutes les ruches avec leur dernière lecture capteur ---
   getHives(): Observable<Hive[]> {
     return this.http.get<Hive[]>(`${this.base}/hives/`);
   }
 
-  // --- Récupère toutes les alertes (triées par date desc côté API) ---
   getAlerts(): Observable<Alert[]> {
     return this.http.get<Alert[]>(`${this.base}/alerts/`);
   }
 
-  // --- Lance une analyse acoustique IA sur une ruche ---
-  diagnose(hiveId: number, durationSeconds: number): Observable<DiagnoseResult> {
+  // Utilise string pour hiveId car c'est "CF003"
+  diagnose(hiveId: string, durationSeconds: number): Observable<DiagnoseResult> {
     return this.http.post<DiagnoseResult>(`${this.base}/diagnose/`, {
       hive_id: hiveId,
       duration_seconds: durationSeconds,
     });
   }
 
-  // --- Récupère la configuration des seuils ---
-  getSettings(): Observable<AppSettings> {
-    return this.http.get<AppSettings>(`${this.base}/settings/`);
-  }
-
-  // --- Sauvegarde la configuration des seuils ---
-  saveSettings(settings: AppSettings): Observable<AppSettings> {
-    return this.http.put<AppSettings>(`${this.base}/settings/`, settings);
-  }
-
-  // --- Envoie un message au chatbot Grok ---
   chat(message: string): Observable<ChatResponse> {
     return this.http.post<ChatResponse>(`${this.base}/chat/`, { message });
   }
