@@ -33,6 +33,22 @@ services:
       - apicole-net
 
   # =====================================================
+  # Simulateur de capteurs IoT
+  # =====================================================
+  sensor-mock:
+    build: ./backend
+    command: python sensor_mock.py
+    environment:
+      - MQTT_HOST=mosquitto
+      - MQTT_PORT=1883
+      - HMAC_SECRET=${HMAC_SECRET:-dev_secret}
+      - MOCK_INTERVAL=5
+    depends_on:
+      - mosquitto
+    networks:
+      - apicole-net
+
+  # =====================================================
   # Frontend Angular (build multi-étapes + Nginx)
   # Remplace l'ancien service nginx:alpine avec fichiers statiques
   # =====================================================
