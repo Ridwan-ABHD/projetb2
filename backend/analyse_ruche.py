@@ -1,4 +1,4 @@
-from projetb2.backend.database import get_db_connection
+from database import get_db_connection
 import librosa
 import numpy as np
 import os 
