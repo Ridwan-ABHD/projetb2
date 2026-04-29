@@ -1,6 +1,6 @@
 // ─── Caches ──────────────────────────────────────────────────────────────────
-const SHELL_CACHE = 'apicole-shell-v2';
-const API_CACHE   = 'apicole-api-v2';
+const SHELL_CACHE = 'apicole-shell-v4';
+const API_CACHE   = 'apicole-api-v4';
 const ALL_CACHES  = [SHELL_CACHE, API_CACHE];
 
 // Assets précachés à l'installation (URLs stables, sans hash)
@@ -51,50 +51,58 @@ self.addEventListener('fetch', (event) => {
   if (req.method !== 'GET') return;
 
   const url = new URL(req.url);
-  if (url.origin !== self.location.origin) return; // cross-origin ignoré
+  if (url.origin !== self.location.origin) return;
 
-  // API → Network first, fallback cache
-  if (isApiCall(url.pathname)) {
-    event.respondWith(networkFirstApi(req));
-    return;
-  }
-
-  // Navigation SPA → réseau puis shell en fallback
+  // Navigation SPA (F5, lien direct) → toujours index.html, jamais l'API
+  // DOIT être avant isApiCall car les routes Angular partagent les mêmes préfixes
   if (req.mode === 'navigate') {
     event.respondWith(
-      fetch(req).catch(() =>
-        caches.match('/').then((r) => r || caches.match('/index.html'))
-      )
+      caches.match('/').then((r) => r || fetch(req))
     );
     return;
   }
 
-  // Assets statiques → Cache first, mise en cache si réseau OK
+  // Appels API XHR/fetch → Stale-while-revalidate
+  if (isApiCall(url.pathname)) {
+    event.respondWith(staleWhileRevalidateApi(req));
+    return;
+  }
+
+  // Assets statiques → Cache first
   event.respondWith(cacheFirstStatic(req));
 });
 
 // ─── Stratégies ──────────────────────────────────────────────────────────────
 
-async function networkFirstApi(req) {
-  const cache = await caches.open(API_CACHE);
-  try {
-    const response = await fetch(req.clone());
-    if (response.ok) {
-      cache.put(req, response.clone());
-      broadcast({ type: 'DATA_FRESH', cachedAt: Date.now() });
-    }
-    return response;
-  } catch (_) {
-    const cached = await cache.match(req);
-    if (cached) {
-      broadcast({ type: 'CACHE_FALLBACK', url: req.url });
-      return cached;
-    }
-    return new Response(JSON.stringify({ offline: true, error: 'Hors-ligne' }), {
-      status: 503,
-      headers: { 'Content-Type': 'application/json' },
-    });
+async function staleWhileRevalidateApi(req) {
+  const cache  = await caches.open(API_CACHE);
+  const cached = await cache.match(req);
+
+  // Mise à jour réseau en arrière-plan (fire & forget)
+  const networkUpdate = fetch(req.clone())
+    .then(response => {
+      if (response.ok) {
+        cache.put(req, response.clone());
+        broadcast({ type: 'DATA_FRESH', cachedAt: Date.now() });
+      }
+      return response;
+    })
+    .catch(() => null);
+
+  if (cached) {
+    // Données en cache disponibles : retour immédiat, réseau en fond
+    broadcast({ type: 'CACHE_FALLBACK', url: req.url });
+    return cached;
   }
+
+  // Pas de cache : on attend le réseau
+  const response = await networkUpdate;
+  if (response && response.status !== 0) return response;
+
+  return new Response(JSON.stringify({ offline: true, error: 'Hors-ligne' }), {
+    status: 503,
+    headers: { 'Content-Type': 'application/json' },
+  });
 }
 
 async function cacheFirstStatic(req) {
@@ -134,13 +142,13 @@ self.addEventListener('push', (event) => {
     } catch (_) {}
   }
 
+  const tag = data.tag || ('apicole-' + Date.now());
   event.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
       icon: data.icon,
       badge: '/icons/icon-192.png',
-      tag: 'apicole-alert',
-      requireInteraction: true,
+      tag,
       data: { url: data.url },
     })
   );

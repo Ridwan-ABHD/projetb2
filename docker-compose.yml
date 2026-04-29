@@ -26,6 +26,10 @@ services:
       - HMAC_SECRET=${HMAC_SECRET:-dev_secret}
       - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY:-}
       - VAPID_EMAIL=${VAPID_EMAIL:-mailto:admin@surveillance-apicole.fr}
+      - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT:-}
+      - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY:-}
+      - AZURE_OPENAI_DEPLOYMENT=${AZURE_OPENAI_DEPLOYMENT:-gpt-4o}
+      - AZURE_OPENAI_API_VERSION=${AZURE_OPENAI_API_VERSION:-2024-12-01-preview}
       - DB_PATH=/app/db/RucheIA.db
     depends_on:
       - mosquitto

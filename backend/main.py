@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from database import get_db_connection
 from mqtt_client import start_mqtt_subscriber
+from push_utils import webpush_send
 from routers import alerts, chat, diagnosis, hives, push, settings
 
 load_dotenv()
@@ -142,43 +143,20 @@ def _init_db():
 # ---------------------------------------------------------------------------
 
 def _send_push(hive_id: str, message: str):
-    vapid_private_key = os.getenv("VAPID_PRIVATE_KEY")
-    vapid_email = os.getenv("VAPID_EMAIL", "mailto:admin@surveillance-apicole.fr")
-    if not vapid_private_key:
-        return
-    try:
-        from pywebpush import webpush, WebPushException
-    except ImportError:
-        return
-
+    """Envoie un push à tous les abonnés."""
     with get_db_connection() as conn:
         rows = conn.execute(
             "SELECT id, endpoint, subscription_json FROM push_subscriptions"
         ).fetchall()
     if not rows:
+        logger.info("Push ignoré — aucun abonné enregistré")
         return
 
-    data = json.dumps({
-        "title": f"Alerte — Ruche {hive_id}",
-        "body":  message,
-        "icon":  "/icons/icon-192.png",
-        "url":   "/",
-    })
     stale = []
     for row in rows:
-        try:
-            webpush(
-                subscription_info=json.loads(row["subscription_json"]),
-                data=data,
-                vapid_private_key=vapid_private_key,
-                vapid_claims={"sub": vapid_email},
-            )
-        except Exception as exc:
-            status = getattr(getattr(exc, "response", None), "status_code", None)
-            if status in (404, 410):
-                stale.append(row["id"])
-            else:
-                logger.warning("Push échoué : %s", exc)
+        status = webpush_send(json.loads(row["subscription_json"]), hive_id, message)
+        if status in (404, 410):
+            stale.append(row["id"])
     if stale:
         with get_db_connection() as conn:
             for sid in stale:
@@ -231,6 +209,10 @@ async def _alert_checker():
                                 to_create.append(("temperature_critique",
                                     f"Température critique : {temp:.1f}°C", "critical"))
                         elif temp >= temp_warn:
+                            conn.execute("""
+                                UPDATE alertes SET is_resolved=1 WHERE id_ruche=?
+                                AND type='temperature_critique' AND is_resolved=0
+                            """, (hive_id,))
                             if not conn.execute(
                                 "SELECT 1 FROM alertes WHERE id_ruche=? AND type='temperature_warning' AND is_resolved=0",
                                 (hive_id,)
@@ -253,6 +235,11 @@ async def _alert_checker():
                                 to_create.append(("frequence_critique",
                                     f"Fréquence critique : {freq:.0f} Hz — Risque d'essaimage", "critical"))
                         elif freq >= freq_warn:
+                            # Résout critique si on repasse en dessous
+                            conn.execute("""
+                                UPDATE alertes SET is_resolved=1 WHERE id_ruche=?
+                                AND type='frequence_critique' AND is_resolved=0
+                            """, (hive_id,))
                             if not conn.execute(
                                 "SELECT 1 FROM alertes WHERE id_ruche=? AND type='frequence_warning' AND is_resolved=0",
                                 (hive_id,)
@@ -265,19 +252,26 @@ async def _alert_checker():
                                 AND type IN ('frequence_critique','frequence_warning') AND is_resolved=0
                             """, (hive_id,))
 
+                    push_queue = []
                     for (type_, msg, sev) in to_create:
                         conn.execute(
                             "INSERT INTO alertes (id_ruche, timestamp, type, message, severite) VALUES (?,?,?,?,?)",
                             (hive_id, now, type_, msg, sev),
                         )
-                        if sev == "critical":
-                            threading.Thread(
-                                target=_send_push, args=(hive_id, msg), daemon=True
-                            ).start()
+                        # Push pour toute alerte critique ET pour les alertes
+                        # de fréquence (essaimage) même au niveau warning
+                        if sev == "critical" or type_.startswith("frequence_"):
+                            push_queue.append((hive_id, msg))
+
+                    # Commit toujours — les UPDATE de résolution doivent aussi être persistés
+                    conn.commit()
 
                     if to_create:
-                        conn.commit()
                         logger.info("Alertes créées pour %s : %s", hive_id, [t[0] for t in to_create])
+
+                    # Push APRÈS le commit pour éviter le verrou SQLite
+                    for (h, m) in push_queue:
+                        threading.Thread(target=_send_push, args=(h, m), daemon=True).start()
 
         except Exception as exc:
             logger.error("Erreur alert_checker : %s", exc)

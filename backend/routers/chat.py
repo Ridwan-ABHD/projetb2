@@ -1,9 +1,7 @@
 import os
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
 from database import get_db_connection
-#from models import Alert, Hive, SensorReading
 
 router = APIRouter(prefix="/chat", tags=["chatbot"])
 
@@ -17,22 +15,28 @@ class ChatResponse(BaseModel):
 
 
 def _hive_context() -> str:
-    # On récupère une connexion directe à SQLite
     with get_db_connection() as conn:
-        cursor = conn.cursor()
-        # On récupère les données de la table ruches (id_ruche, temperature, poids, etc.)
-        cursor.execute("SELECT id_ruche, temperature, poids, frequence_moyenne FROM ruches")
-        hives = cursor.fetchall()
-    
-    lines = []
-    for hive in hives:
-        id_r, temp, poids, freq = hive
-        line = f"- Ruche {id_r} : "
-        line += f"Température={temp if temp else 'N/A'}°C, "
-        line += f"Poids={poids if poids else 'N/A'} kg, "
-        line += f"Fréquence={freq if freq else 'N/A'} Hz"
-        lines.append(line)
+        rows = conn.execute("""
+            SELECT r.id_ruche, m.temperature, m.poids, m.frequence_moyenne
+            FROM ruches r
+            LEFT JOIN (
+                SELECT id_ruche, temperature, poids, frequence_moyenne
+                FROM mesures
+                WHERE id_mesure IN (SELECT MAX(id_mesure) FROM mesures GROUP BY id_ruche)
+            ) m ON m.id_ruche = r.id_ruche
+        """).fetchall()
 
+    lines = []
+    for row in rows:
+        temp = row["temperature"]
+        poids = row["poids"]
+        freq  = row["frequence_moyenne"]
+        lines.append(
+            f"- Ruche {row['id_ruche']} : "
+            f"Température={f'{temp:.1f}' if temp else 'N/A'}°C, "
+            f"Poids={f'{poids:.1f}' if poids else 'N/A'} kg, "
+            f"Fréquence={f'{freq:.0f}' if freq else 'N/A'} Hz"
+        )
     return "\n".join(lines)
 
 _SYSTEM_PROMPT = """\

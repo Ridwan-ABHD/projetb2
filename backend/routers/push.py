@@ -1,10 +1,14 @@
 import json
+import logging
+import threading
 from fastapi import APIRouter, HTTPException
 
 from database import get_db_connection
 from schemas import PushSubscriptionIn
+from push_utils import webpush_send
 
 router = APIRouter(prefix="/api/push", tags=["push"])
+logger = logging.getLogger("push")
 
 
 def _ensure_table():
@@ -20,6 +24,24 @@ def _ensure_table():
         conn.commit()
 
 
+def _push_existing_criticals_to(subscription_json: str):
+    """Envoie les alertes critiques actives à un nouvel abonné."""
+    with get_db_connection() as conn:
+        alerts = conn.execute("""
+            SELECT id_ruche, message FROM alertes
+            WHERE severite = 'critical' AND is_resolved = 0
+            ORDER BY timestamp DESC
+        """).fetchall()
+
+    seen = set()
+    sub_info = json.loads(subscription_json)
+    for a in alerts:
+        hive_id = a["id_ruche"]
+        if hive_id not in seen:
+            seen.add(hive_id)
+            webpush_send(sub_info, hive_id, a["message"])
+
+
 @router.post("/subscribe", status_code=201)
 def subscribe(sub: PushSubscriptionIn):
     _ensure_table()
@@ -29,6 +51,7 @@ def subscribe(sub: PushSubscriptionIn):
         raise HTTPException(status_code=400, detail="endpoint manquant")
 
     subscription_json = json.dumps(subscription)
+    is_new = False
     with get_db_connection() as conn:
         existing = conn.execute(
             "SELECT id FROM push_subscriptions WHERE endpoint = ?", (endpoint,)
@@ -43,6 +66,15 @@ def subscribe(sub: PushSubscriptionIn):
                 "INSERT INTO push_subscriptions (endpoint, subscription_json) VALUES (?, ?)",
                 (endpoint, subscription_json),
             )
+            is_new = True
         conn.commit()
+
+    if is_new:
+        logger.info("Nouvel abonné — envoi des alertes critiques actives")
+        threading.Thread(
+            target=_push_existing_criticals_to,
+            args=(subscription_json,),
+            daemon=True,
+        ).start()
 
     return {"status": "subscribed"}

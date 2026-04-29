@@ -94,7 +94,23 @@
       }
     </div>
 
-    <p class="hive-detail-time">✅ Aucune alerte active</p>
+    @if (selectedHive()!.active_alerts.length > 0) {
+      <section class="section" style="margin-top: 16px;">
+        <h2 class="section-title">Alertes actives</h2>
+        @for (alert of selectedHive()!.active_alerts; track alert.id) {
+          <div class="alert" [class.danger]="alert.severity === 'critical'" [class.warn]="alert.severity === 'warning'">
+            <strong>
+              {{ alert.severity === 'critical' ? '🔴' : '🟡' }}
+              {{ alert.type.replace('_', ' ') | titlecase }}
+            </strong>
+            <p>{{ alert.message }}</p>
+            <small>{{ timeAgo(alert.timestamp) }}</small>
+          </div>
+        }
+      </section>
+    } @else {
+      <p class="hive-detail-time">✅ Aucune alerte active</p>
+    }
   </main>
 
 }
