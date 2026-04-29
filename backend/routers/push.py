@@ -1,10 +1,13 @@
 import json
+import logging
+import threading
 from fastapi import APIRouter, HTTPException
 
 from database import get_db_connection
 from schemas import PushSubscriptionIn
 
 router = APIRouter(prefix="/api/push", tags=["push"])
+logger = logging.getLogger("push")
 
 
 def _ensure_table():
@@ -20,6 +23,29 @@ def _ensure_table():
         conn.commit()
 
 
+def _push_critical_alerts_to(subscription_json: str):
+    """Envoie les alertes critiques actives à un abonné qui vient de s'inscrire."""
+    from main import _send_push_to_subscription
+
+    with get_db_connection() as conn:
+        alerts = conn.execute("""
+            SELECT id_ruche, message FROM alertes
+            WHERE severite = 'critical' AND is_resolved = 0
+            ORDER BY timestamp DESC
+        """).fetchall()
+
+    seen = set()
+    for a in alerts:
+        hive_id = a["id_ruche"]
+        if hive_id not in seen:
+            seen.add(hive_id)
+            threading.Thread(
+                target=_send_push_to_subscription,
+                args=(subscription_json, hive_id, a["message"]),
+                daemon=True,
+            ).start()
+
+
 @router.post("/subscribe", status_code=201)
 def subscribe(sub: PushSubscriptionIn):
     _ensure_table()
@@ -29,6 +55,7 @@ def subscribe(sub: PushSubscriptionIn):
         raise HTTPException(status_code=400, detail="endpoint manquant")
 
     subscription_json = json.dumps(subscription)
+    is_new = False
     with get_db_connection() as conn:
         existing = conn.execute(
             "SELECT id FROM push_subscriptions WHERE endpoint = ?", (endpoint,)
@@ -43,6 +70,15 @@ def subscribe(sub: PushSubscriptionIn):
                 "INSERT INTO push_subscriptions (endpoint, subscription_json) VALUES (?, ?)",
                 (endpoint, subscription_json),
             )
+            is_new = True
         conn.commit()
+
+    if is_new:
+        logger.info("Nouvel abonné push — envoi des alertes critiques actives")
+        threading.Thread(
+            target=_push_critical_alerts_to,
+            args=(subscription_json,),
+            daemon=True,
+        ).start()
 
     return {"status": "subscribed"}

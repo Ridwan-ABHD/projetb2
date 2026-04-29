@@ -141,21 +141,52 @@ def _init_db():
 # Push helper (partagé avec mqtt_client)
 # ---------------------------------------------------------------------------
 
-def _send_push(hive_id: str, message: str):
+def _webpush_send(subscription_info: dict, data: str):
     vapid_private_key = os.getenv("VAPID_PRIVATE_KEY")
     vapid_email = os.getenv("VAPID_EMAIL", "mailto:admin@surveillance-apicole.fr")
     if not vapid_private_key:
-        return
+        logger.warning("VAPID_PRIVATE_KEY non configurée — push ignoré")
+        return None
     try:
         from pywebpush import webpush, WebPushException
-    except ImportError:
-        return
+        webpush(
+            subscription_info=subscription_info,
+            data=data,
+            vapid_private_key=vapid_private_key,
+            vapid_claims={"sub": vapid_email},
+        )
+        logger.info("Push envoyé vers %s…", subscription_info.get("endpoint", "")[:40])
+        return None
+    except Exception as exc:
+        status = getattr(getattr(exc, "response", None), "status_code", None)
+        logger.warning("Push échoué (status=%s) : %s", status, exc)
+        return status
 
+
+def _send_push_to_subscription(subscription_json: str, hive_id: str, message: str):
+    """Envoie un push à un seul abonné (utilisé lors de l'inscription)."""
+    data = json.dumps({
+        "title": f"Alerte — Ruche {hive_id}",
+        "body":  message,
+        "icon":  "/icons/icon-192.png",
+        "url":   "/",
+    })
+    status = _webpush_send(json.loads(subscription_json), data)
+    if status in (404, 410):
+        with get_db_connection() as conn:
+            conn.execute("DELETE FROM push_subscriptions WHERE endpoint = ?",
+                         (json.loads(subscription_json).get("endpoint"),))
+            conn.commit()
+
+
+def _send_push(hive_id: str, message: str):
+    """Envoie un push à tous les abonnés."""
     with get_db_connection() as conn:
         rows = conn.execute(
             "SELECT id, endpoint, subscription_json FROM push_subscriptions"
         ).fetchall()
     if not rows:
+        logger.info("Push ignoré — aucun abonné enregistré")
         return
 
     data = json.dumps({
@@ -166,19 +197,9 @@ def _send_push(hive_id: str, message: str):
     })
     stale = []
     for row in rows:
-        try:
-            webpush(
-                subscription_info=json.loads(row["subscription_json"]),
-                data=data,
-                vapid_private_key=vapid_private_key,
-                vapid_claims={"sub": vapid_email},
-            )
-        except Exception as exc:
-            status = getattr(getattr(exc, "response", None), "status_code", None)
-            if status in (404, 410):
-                stale.append(row["id"])
-            else:
-                logger.warning("Push échoué : %s", exc)
+        status = _webpush_send(json.loads(row["subscription_json"]), data)
+        if status in (404, 410):
+            stale.append(row["id"])
     if stale:
         with get_db_connection() as conn:
             for sid in stale:
@@ -231,6 +252,10 @@ async def _alert_checker():
                                 to_create.append(("temperature_critique",
                                     f"Température critique : {temp:.1f}°C", "critical"))
                         elif temp >= temp_warn:
+                            conn.execute("""
+                                UPDATE alertes SET is_resolved=1 WHERE id_ruche=?
+                                AND type='temperature_critique' AND is_resolved=0
+                            """, (hive_id,))
                             if not conn.execute(
                                 "SELECT 1 FROM alertes WHERE id_ruche=? AND type='temperature_warning' AND is_resolved=0",
                                 (hive_id,)
@@ -253,6 +278,11 @@ async def _alert_checker():
                                 to_create.append(("frequence_critique",
                                     f"Fréquence critique : {freq:.0f} Hz — Risque d'essaimage", "critical"))
                         elif freq >= freq_warn:
+                            # Résout critique si on repasse en dessous
+                            conn.execute("""
+                                UPDATE alertes SET is_resolved=1 WHERE id_ruche=?
+                                AND type='frequence_critique' AND is_resolved=0
+                            """, (hive_id,))
                             if not conn.execute(
                                 "SELECT 1 FROM alertes WHERE id_ruche=? AND type='frequence_warning' AND is_resolved=0",
                                 (hive_id,)
