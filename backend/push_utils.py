@@ -23,6 +23,7 @@ def webpush_send(subscription_info: dict, hive_id: str, message: str) -> int | N
         "body":  message,
         "icon":  "/icons/icon-192.png",
         "url":   "/",
+        "tag":   f"apicole-{hive_id}",
     })
     try:
         webpush(

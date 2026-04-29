@@ -142,13 +142,13 @@ self.addEventListener('push', (event) => {
     } catch (_) {}
   }
 
+  const tag = data.tag || ('apicole-' + Date.now());
   event.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
       icon: data.icon,
       badge: '/icons/icon-192.png',
-      tag: 'apicole-alert',
-      requireInteraction: true,
+      tag,
       data: { url: data.url },
     })
   );

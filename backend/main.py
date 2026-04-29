@@ -252,19 +252,24 @@ async def _alert_checker():
                                 AND type IN ('frequence_critique','frequence_warning') AND is_resolved=0
                             """, (hive_id,))
 
+                    push_queue = []
                     for (type_, msg, sev) in to_create:
                         conn.execute(
                             "INSERT INTO alertes (id_ruche, timestamp, type, message, severite) VALUES (?,?,?,?,?)",
                             (hive_id, now, type_, msg, sev),
                         )
                         if sev == "critical":
-                            threading.Thread(
-                                target=_send_push, args=(hive_id, msg), daemon=True
-                            ).start()
+                            push_queue.append((hive_id, msg))
+
+                    # Commit toujours — les UPDATE de résolution doivent aussi être persistés
+                    conn.commit()
 
                     if to_create:
-                        conn.commit()
                         logger.info("Alertes créées pour %s : %s", hive_id, [t[0] for t in to_create])
+
+                    # Push APRÈS le commit pour éviter le verrou SQLite
+                    for (h, m) in push_queue:
+                        threading.Thread(target=_send_push, args=(h, m), daemon=True).start()
 
         except Exception as exc:
             logger.error("Erreur alert_checker : %s", exc)
