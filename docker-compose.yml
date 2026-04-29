@@ -43,13 +43,14 @@ services:
       sh -c "pip install pandas -q && python /bdd/moks_live.py"
     environment:
       - DB_PATH=/db/RucheIA.db
-      - CSV_TEMP=/bdd/temperature_2017.csv
-      - CSV_POIDS=/bdd/weight_2017.csv
+      - CSV_TEMP=/backend/temperature_2017.csv
+      - CSV_POIDS=/backend/weight_2017.csv
       - MOCK_INTERVAL=5
     depends_on:
       - backend
     volumes:
       - ./BDD:/bdd
+      - ./backend:/backend
       - db-data:/db
     networks:
       - apicole-net

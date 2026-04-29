@@ -52,10 +52,9 @@ def _init_db():
     with get_db_connection() as conn:
         conn.executescript("""
             CREATE TABLE IF NOT EXISTS ruches (
-                id_ruche    TEXT PRIMARY KEY,
-                nom         TEXT,
-                localisation TEXT,
-                statut      TEXT DEFAULT 'normal'
+                id_ruche   TEXT PRIMARY KEY,
+                id_site    TEXT,
+                type_ruche TEXT DEFAULT 'normal'
             );
             CREATE TABLE IF NOT EXISTS mesures (
                 id_mesure        INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -93,11 +92,11 @@ def _init_db():
         existing = conn.execute("SELECT COUNT(*) FROM ruches").fetchone()[0]
         if existing == 0:
             conn.executemany(
-                "INSERT INTO ruches (id_ruche, nom, localisation, statut) VALUES (?, ?, ?, ?)",
+                "INSERT INTO ruches (id_ruche, id_site, type_ruche) VALUES (?, ?, ?)",
                 [
-                    ("CF003", "Ruche CF003", "La Clairière", "normal"),
-                    ("CJ001", "Ruche CJ001", "Le Jardin",   "normal"),
-                    ("H1",    "Ruche H1",    "La Forêt",    "normal"),
+                    ("CF003", "La Clairière", "normal"),
+                    ("CJ001", "Le Jardin",   "normal"),
+                    ("H1",    "La Forêt",    "normal"),
                 ],
             )
             logger.info("Base de données initialisée avec les 3 ruches par défaut")

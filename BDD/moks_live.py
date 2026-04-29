@@ -9,8 +9,8 @@ import os
 _DIR = os.path.dirname(os.path.abspath(__file__))
 # En Docker : DB_PATH=/app/RucheIA.db  |  En local : chemin relatif vers backend/
 DB_NAME     = os.environ.get('DB_PATH',    os.path.join(_DIR, '..', 'backend', 'RucheIA.db'))
-FICHIER_TEMP  = os.environ.get('CSV_TEMP',  os.path.join(_DIR, 'temperature_2017.csv'))
-FICHIER_POIDS = os.environ.get('CSV_POIDS', os.path.join(_DIR, 'weight_2017.csv'))
+FICHIER_TEMP  = os.environ.get('CSV_TEMP',  os.path.join(_DIR, '..', 'backend', 'temperature_2017.csv'))
+FICHIER_POIDS = os.environ.get('CSV_POIDS', os.path.join(_DIR, '..', 'backend', 'weight_2017.csv'))
 DELAI_ENVOI = int(os.environ.get('MOCK_INTERVAL', 5))
 
 def simulation_live():
