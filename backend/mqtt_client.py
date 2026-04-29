@@ -35,7 +35,7 @@ def _send_push_notifications(hive_id, temp: float):
         return
 
     try:
-        from pywebpush import webpush, WebPushException
+        from pywebpush import webpush, WebPushException  # type: ignore[import]
     except ImportError:
         logger.warning("pywebpush non installé — push ignoré")
         return

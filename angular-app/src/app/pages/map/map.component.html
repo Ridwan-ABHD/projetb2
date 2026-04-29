@@ -37,13 +37,13 @@
           <h3>{{ hive.name }}</h3>
           <p>
             @if (hive.last_reading) {
-              {{ hive.last_reading.frequence_moyenne ?? '—' }} Hz
+              {{ hive.last_reading.frequency_hz }} Hz
             } @else { — Hz }
           </p>
           <p>
             @if (hive.last_reading) {
-              {{ hive.last_reading.temperature | number:'1.1-1' }}°C ·
-              {{ hive.last_reading.poids | number:'1.1-1' }} kg
+              {{ hive.last_reading.temperature_c | number:'1.1-1' }}°C ·
+              {{ hive.last_reading.weight_kg | number:'1.1-1' }} kg
             } @else { — · — }
           </p>
         </div>
@@ -74,15 +74,15 @@
         <div class="hive-detail-sensors">
           <div class="sensor-item">
             <small>🎵 Fréquence</small>
-            <strong>{{ selectedHive()!.last_reading!.frequence_moyenne ?? '—' }} Hz</strong>
+            <strong>{{ selectedHive()!.last_reading!.frequency_hz }} Hz</strong>
           </div>
           <div class="sensor-item">
             <small>🌡️ Température</small>
-            <strong>{{ selectedHive()!.last_reading!.temperature | number:'1.1-1' }} °C</strong>
+            <strong>{{ selectedHive()!.last_reading!.temperature_c | number:'1.1-1' }} °C</strong>
           </div>
           <div class="sensor-item">
             <small>⚖️ Poids</small>
-            <strong>{{ selectedHive()!.last_reading!.poids | number:'1.1-1' }} kg</strong>
+            <strong>{{ selectedHive()!.last_reading!.weight_kg | number:'1.1-1' }} kg</strong>
           </div>
           <div class="sensor-item">
             <small>🕐 Dernière mesure</small>

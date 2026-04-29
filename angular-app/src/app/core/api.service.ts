@@ -32,12 +32,12 @@ export interface Hive {
 }
 
 export interface DiagnoseResult {
-  hive_name: string;
+  hive_id: string;
   swarming_probability: number;
   dominant_frequency: number;
   stress_level: string;
-  duration_seconds: number;
   recommendation: string;
+  analysis_duration: string;
 }
 
 export interface AppSettings {
@@ -79,6 +79,13 @@ export class ApiService {
 
   chat(message: string): Observable<ChatResponse> {
     return this.http.post<ChatResponse>(`${this.base}/chat/`, { message });
+  }
+
+  diagnose(hiveId: number, durationSeconds: number): Observable<DiagnoseResult> {
+    return this.http.post<DiagnoseResult>(`${this.base}/diagnose/`, {
+      hive_id: hiveId.toString(),
+      duration_seconds: durationSeconds,
+    });
   }
 
   resolveAlert(alertId: number): Observable<void> {

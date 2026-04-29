@@ -1,4 +1,11 @@
-from projetb2.backend.database import get_db_connection
+import sys
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+if str(HERE) not in sys.path:
+    sys.path.insert(0, str(HERE))
+
+from database import get_db_connection
 import librosa
 import numpy as np
 import os 

@@ -19,7 +19,7 @@ export class MapComponent implements OnInit {
 
   get alertCount(): number {
     return this.hives().filter(h => {
-      const freq = h.last_reading?.frequence_moyenne;
+      const freq = h.last_reading?.frequency_hz;
       return freq !== null && freq !== undefined && freq >= 260;
     }).length;
   }
@@ -40,7 +40,7 @@ export class MapComponent implements OnInit {
   }
 
   hiveStatus(hive: Hive): string {
-    const freq = hive.last_reading?.frequence_moyenne;
+    const freq = hive.last_reading?.frequency_hz;
     if (freq === null || freq === undefined) return 'normal';
     if (freq >= 280) return 'critical';
     if (freq >= 260) return 'warning';

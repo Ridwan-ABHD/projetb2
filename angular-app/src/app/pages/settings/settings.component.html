@@ -23,14 +23,14 @@
         <label>Fréquence min</label>
         <small>En dessous, ruche peut-être orpheline</small>
       </div>
-      <input type="number" [(ngModel)]="freqMin" min="100" max="500" />
+      <input type="number" [(ngModel)]="freqWarning" min="100" max="500" />
     </div>
     <div class="setting">
       <div>
         <label>Fréquence max</label>
         <small>Au-dessus, risque d'essaimage</small>
       </div>
-      <input type="number" [(ngModel)]="freqMax" min="100" max="500" />
+      <input type="number" [(ngModel)]="freqCritical" min="100" max="500" />
     </div>
   </section>
 
@@ -41,7 +41,7 @@
         <label>Température min (°C)</label>
         <small>Stress thermique en dessous</small>
       </div>
-      <input type="number" [(ngModel)]="tempMin" min="0" max="50" />
+      <input type="number" [(ngModel)]="tempWarning" min="0" max="50" />
     </div>
   </section>
 
