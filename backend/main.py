@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 # On ne garde QUE tes routers nettoyés et ta connexion
 from database import get_db_connection
 from mqtt_client import start_mqtt_subscriber
-from routers import alerts, chat, diagnosis, hives, settings
+from routers import alerts, chat, diagnosis, hives, push, settings
 
 load_dotenv()
 
@@ -52,6 +52,7 @@ app.include_router(alerts.router)
 app.include_router(settings.router)
 app.include_router(diagnosis.router)
 app.include_router(chat.router)
+app.include_router(push.router)
 
 @app.get("/")
 def read_root():

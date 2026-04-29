@@ -4,8 +4,14 @@
       <small>Configuration</small>
       <h1>Paramètres</h1>
     </div>
+    <app-network-badge></app-network-badge>
   </div>
-  <small>Seuils et alertes</small>
+  <small>
+    Seuils et alertes
+    @if (queue.pendingCount() > 0) {
+      · <strong>{{ queue.pendingCount() }} modification{{ queue.pendingCount() > 1 ? 's' : '' }} en attente de sync</strong>
+    }
+  </small>
 </header>
 
 <main class="app-main">

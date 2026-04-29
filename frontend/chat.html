@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Surveillance Apicole — Assistant</title>
+  <link rel="stylesheet" href="base.css" />
+  <link rel="stylesheet" href="ui.css" />
+  <link rel="stylesheet" href="pages.css" />
+  <style>
+    .chat-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: .75rem;
+      padding-bottom: 1rem;
+    }
+    .bubble {
+      max-width: 85%;
+      padding: .65rem .9rem;
+      border-radius: 1rem;
+      font-size: .9rem;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+    .bubble.user {
+      align-self: flex-end;
+      background: var(--green, #2D6A4F);
+      color: #fff;
+      border-bottom-right-radius: .25rem;
+    }
+    .bubble.bot {
+      align-self: flex-start;
+      background: var(--soft, #F1F3F5);
+      color: #1a1a1a;
+      border-bottom-left-radius: .25rem;
+    }
+    .bubble.typing {
+      opacity: .55;
+      font-style: italic;
+    }
+    .chat-form {
+      position: sticky;
+      bottom: calc(56px + .75rem);
+      display: flex;
+      gap: .5rem;
+      background: #fff;
+      padding: .5rem 0;
+    }
+    .chat-form input {
+      flex: 1;
+      border: 1.5px solid #ddd;
+      border-radius: .75rem;
+      padding: .6rem .9rem;
+      font-size: .95rem;
+      outline: none;
+    }
+    .chat-form input:focus { border-color: var(--green, #2D6A4F); }
+    .chat-form button {
+      background: var(--green, #2D6A4F);
+      color: #fff;
+      border: none;
+      border-radius: .75rem;
+      padding: .6rem 1rem;
+      font-size: .95rem;
+      cursor: pointer;
+    }
+    .chat-form button:disabled { opacity: .5; cursor: default; }
+    .suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+      margin-bottom: .5rem;
+    }
+    .suggestion {
+      background: var(--soft, #F1F3F5);
+      border: 1px solid #ddd;
+      border-radius: 1rem;
+      padding: .4rem .75rem;
+      font-size: .8rem;
+      cursor: pointer;
+      color: #444;
+    }
+    .suggestion:hover { background: #e2e6ea; }
+  </style>
+</head>
+<body>
+  <div class="app">
+
+    <header class="app-header">
+      <div class="header-top">
+        <div>
+          <small>Intelligence Artificielle</small>
+          <h1>Assistant Apicole</h1>
+        </div>
+      </div>
+      <small>Posez vos questions sur vos ruches</small>
+    </header>
+
+    <main class="app-main">
+
+      <div class="suggestions">
+        <button class="suggestion" data-q="Quelle ruche est la plus préoccupante en ce moment ?">Ruche à surveiller ?</button>
+        <button class="suggestion" data-q="Explique-moi les alertes actives.">Alertes actives</button>
+        <button class="suggestion" data-q="Donne-moi un résumé de l'état général du rucher.">État général</button>
+        <button class="suggestion" data-q="Que faire si une ruche risque d'essaimer ?">Que faire ?</button>
+      </div>
+
+      <div id="chat-wrap" class="chat-wrap"></div>
+
+      <form id="chat-form" class="chat-form">
+        <input id="chat-input" type="text" placeholder="Votre question…" autocomplete="off" />
+        <button id="chat-send" type="submit">Envoyer</button>
+      </form>
+
+    </main>
+
+    <nav class="bottom-nav">
+      <a href="index.html"    class="nav-item">Accueil</a>
+      <a href="map.html"      class="nav-item">Ruches</a>
+      <a href="diag.html"     class="nav-item">Diagnostic</a>
+      <a href="history.html"  class="nav-item">Historique</a>
+      <a href="settings.html" class="nav-item">Réglages</a>
+      <a href="chat.html"     class="nav-item active">Assistant</a>
+    </nav>
+
+  </div>
+  <script src="api.js"></script>
+  <script src="chat.js"></script>
+</body>
+</html>
