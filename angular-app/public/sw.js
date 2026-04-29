@@ -51,25 +51,24 @@ self.addEventListener('fetch', (event) => {
   if (req.method !== 'GET') return;
 
   const url = new URL(req.url);
-  if (url.origin !== self.location.origin) return; // cross-origin ignoré
+  if (url.origin !== self.location.origin) return;
 
-  // API → Network first, fallback cache
+  // Navigation SPA (F5, lien direct) → toujours index.html, jamais l'API
+  // DOIT être avant isApiCall car les routes Angular partagent les mêmes préfixes
+  if (req.mode === 'navigate') {
+    event.respondWith(
+      caches.match('/').then((r) => r || fetch(req))
+    );
+    return;
+  }
+
+  // Appels API XHR/fetch → Network first, fallback cache
   if (isApiCall(url.pathname)) {
     event.respondWith(networkFirstApi(req));
     return;
   }
 
-  // Navigation SPA → réseau puis shell en fallback
-  if (req.mode === 'navigate') {
-    event.respondWith(
-      fetch(req).catch(() =>
-        caches.match('/').then((r) => r || caches.match('/index.html'))
-      )
-    );
-    return;
-  }
-
-  // Assets statiques → Cache first, mise en cache si réseau OK
+  // Assets statiques → Cache first
   event.respondWith(cacheFirstStatic(req));
 });
 
