@@ -6,15 +6,18 @@ import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { ApiService, Hive } from '../../core/api.service';
+import { NetworkService } from '../../core/network.service';
+import { NetworkBadgeComponent } from '../../shared/network-badge/network-badge.component';
 
 @Component({
   selector: 'app-map',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NetworkBadgeComponent],
   templateUrl: './map.component.html',
 })
 export class MapComponent implements OnInit {
-  private api = inject(ApiService);
+  private api     = inject(ApiService);
+  private network = inject(NetworkService);
 
   hives        = signal<Hive[]>([]);
   selectedHive = signal<Hive | null>(null);
@@ -25,7 +28,7 @@ export class MapComponent implements OnInit {
 
   ngOnInit(): void {
     this.api.getHives().subscribe({
-      next: hives => this.hives.set(hives),
+      next: hives => { this.network.markDataFresh(); this.hives.set(hives); },
       error: err  => console.error('Erreur chargement carte :', err),
     });
   }

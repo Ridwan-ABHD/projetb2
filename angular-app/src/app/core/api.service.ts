@@ -80,4 +80,12 @@ export class ApiService {
   chat(message: string): Observable<ChatResponse> {
     return this.http.post<ChatResponse>(`${this.base}/chat/`, { message });
   }
+
+  resolveAlert(alertId: number): Observable<void> {
+    return this.http.post<void>(`${this.base}/alerts/${alertId}/resolve`, {});
+  }
+
+  subscribePush(subscription: PushSubscriptionJSON): Observable<{ status: string }> {
+    return this.http.post<{ status: string }>(`${this.base}/api/push/subscribe`, { subscription });
+  }
 }

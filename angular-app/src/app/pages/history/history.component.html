@@ -5,6 +5,7 @@
       <small>Journal</small>
       <h1>Historique</h1>
     </div>
+    <app-network-badge></app-network-badge>
   </div>
   <small>Alertes des 7 derniers jours · mise à jour auto</small>
 </header>
@@ -36,7 +37,12 @@
           <div class="event-body">
             <h3>{{ severityLabel(alert) }} — {{ hiveName(alert.hive_id) }}</h3>
             <p>{{ alert.message }}</p>
-            <time>{{ timeAgo(alert.timestamp) }}</time>
+            <div class="event-footer">
+              <time>{{ timeAgo(alert.timestamp) }}</time>
+              @if (!alert.is_resolved) {
+                <button class="btn-resolve" (click)="resolveAlert(alert)">Acquitter</button>
+              }
+            </div>
           </div>
         </article>
       }

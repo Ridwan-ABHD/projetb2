@@ -11,7 +11,7 @@
       class="nav-item"
       [attr.aria-label]="item.label"
     >
-      <span class="nav-icon">{{ item.icon }}</span>
+      <img class="nav-icon" [src]="item.icon" [alt]="item.label" />
       <span class="nav-label">{{ item.label }}</span>
     </a>
   }

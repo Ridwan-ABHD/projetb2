@@ -3,6 +3,9 @@ import { CommonModule } from '@angular/common';
 import { forkJoin, interval, Subscription } from 'rxjs';
 
 import { ApiService, Alert, Hive } from '../../core/api.service';
+import { NetworkService } from '../../core/network.service';
+import { OfflineQueueService } from '../../core/offline-queue.service';
+import { NetworkBadgeComponent } from '../../shared/network-badge/network-badge.component';
 
 interface DayGroup {
   day: string;
@@ -13,11 +16,13 @@ interface DayGroup {
 @Component({
   selector: 'app-history',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NetworkBadgeComponent],
   templateUrl: './history.component.html',
 })
 export class HistoryComponent implements OnInit, OnDestroy {
-  private api = inject(ApiService);
+  private api     = inject(ApiService);
+  private network = inject(NetworkService);
+  private queue   = inject(OfflineQueueService);
   private refreshSub?: Subscription;
 
   allGroups    = signal<DayGroup[]>([]);
@@ -57,6 +62,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
       hives:    this.api.getHives(),
     }).subscribe({
       next: ({ active, resolved, hives }) => {
+        this.network.markDataFresh();
         const names: Record<number, string> = {};
         hives.forEach(h => names[h.id] = h.name);
         this.hiveNames.set(names);
@@ -78,6 +84,28 @@ export class HistoryComponent implements OnInit, OnDestroy {
 
   setFilter(filter: string): void {
     this.activeFilter.set(filter);
+  }
+
+  async resolveAlert(alert: Alert): Promise<void> {
+    if (this.network.isOnline()) {
+      this.api.resolveAlert(alert.id).subscribe({
+        next: () => this.load(),
+        error: (err) => console.error('Erreur résolution alerte :', err),
+      });
+    } else {
+      await this.queue.enqueue({
+        type: 'resolve_alert',
+        payload: { alertId: alert.id },
+        queuedAt: Date.now(),
+      });
+      // Mise à jour optimiste
+      this.allGroups.set(
+        this.allGroups().map((g) => ({
+          ...g,
+          items: g.items.map((i) => (i.id === alert.id ? { ...i, is_resolved: true } : i)),
+        }))
+      );
+    }
   }
 
   hiveName(hiveId: number): string {

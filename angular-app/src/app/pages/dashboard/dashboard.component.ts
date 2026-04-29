@@ -7,19 +7,22 @@ import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
 import { ApiService, Hive, Alert } from '../../core/api.service';
+import { NetworkService } from '../../core/network.service';
+import { NetworkBadgeComponent } from '../../shared/network-badge/network-badge.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [
-    CommonModule, // Fournit les pipes (number, date) et NgClass
-    RouterLink,   // Permet les liens [routerLink]
+    CommonModule,
+    RouterLink,
+    NetworkBadgeComponent,
   ],
   templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent implements OnInit {
-  // inject() récupère le service — Angular 18 recommande cette syntaxe
-  private api = inject(ApiService);
+  private api     = inject(ApiService);
+  private network = inject(NetworkService);
 
   // --- État de la page (Signals = variables réactives) ---
   // Quand on appelle .set(), Angular met à jour le template automatiquement
@@ -40,6 +43,7 @@ export class DashboardComponent implements OnInit {
       alerts: this.api.getAlerts(),
     }).subscribe({
       next: ({ hives, alerts }) => {
+        this.network.markDataFresh();
         this.hives.set(hives);
 
         // On cherche la première alerte "critique" pour l'afficher en bannière rouge

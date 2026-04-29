@@ -4,8 +4,10 @@
     <div>
       <h1>BeeGuard AI</h1>
     </div>
-    <!-- Lien vers l'assistant IA -->
-    <a routerLink="/chat" class="icon-btn" aria-label="Assistant IA">💬</a>
+    <div class="header-actions">
+      <app-network-badge></app-network-badge>
+      <a routerLink="/chat" class="icon-btn" aria-label="Assistant IA">💬</a>
+    </div>
   </div>
   <!-- hives().length lit la valeur du signal "hives" -->
   <small>{{ hives().length }} ruche{{ hives().length > 1 ? 's' : '' }} surveillée{{ hives().length > 1 ? 's' : '' }}</small>
