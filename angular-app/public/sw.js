@@ -1,6 +1,6 @@
 // ─── Caches ──────────────────────────────────────────────────────────────────
-const SHELL_CACHE = 'apicole-shell-v3';
-const API_CACHE   = 'apicole-api-v3';
+const SHELL_CACHE = 'apicole-shell-v4';
+const API_CACHE   = 'apicole-api-v4';
 const ALL_CACHES  = [SHELL_CACHE, API_CACHE];
 
 // Assets précachés à l'installation (URLs stables, sans hash)
@@ -62,9 +62,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Appels API XHR/fetch → Network first, fallback cache
+  // Appels API XHR/fetch → Stale-while-revalidate
   if (isApiCall(url.pathname)) {
-    event.respondWith(networkFirstApi(req));
+    event.respondWith(staleWhileRevalidateApi(req));
     return;
   }
 
@@ -74,26 +74,35 @@ self.addEventListener('fetch', (event) => {
 
 // ─── Stratégies ──────────────────────────────────────────────────────────────
 
-async function networkFirstApi(req) {
-  const cache = await caches.open(API_CACHE);
-  try {
-    const response = await fetch(req.clone());
-    if (response.ok) {
-      cache.put(req, response.clone());
-      broadcast({ type: 'DATA_FRESH', cachedAt: Date.now() });
-    }
-    return response;
-  } catch (_) {
-    const cached = await cache.match(req);
-    if (cached) {
-      broadcast({ type: 'CACHE_FALLBACK', url: req.url });
-      return cached;
-    }
-    return new Response(JSON.stringify({ offline: true, error: 'Hors-ligne' }), {
-      status: 503,
-      headers: { 'Content-Type': 'application/json' },
-    });
+async function staleWhileRevalidateApi(req) {
+  const cache  = await caches.open(API_CACHE);
+  const cached = await cache.match(req);
+
+  // Mise à jour réseau en arrière-plan (fire & forget)
+  const networkUpdate = fetch(req.clone())
+    .then(response => {
+      if (response.ok) {
+        cache.put(req, response.clone());
+        broadcast({ type: 'DATA_FRESH', cachedAt: Date.now() });
+      }
+      return response;
+    })
+    .catch(() => null);
+
+  if (cached) {
+    // Données en cache disponibles : retour immédiat, réseau en fond
+    broadcast({ type: 'CACHE_FALLBACK', url: req.url });
+    return cached;
   }
+
+  // Pas de cache : on attend le réseau
+  const response = await networkUpdate;
+  if (response && response.status !== 0) return response;
+
+  return new Response(JSON.stringify({ offline: true, error: 'Hors-ligne' }), {
+    status: 503,
+    headers: { 'Content-Type': 'application/json' },
+  });
 }
 
 async function cacheFirstStatic(req) {
