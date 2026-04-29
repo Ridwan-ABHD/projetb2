@@ -258,7 +258,9 @@ async def _alert_checker():
                             "INSERT INTO alertes (id_ruche, timestamp, type, message, severite) VALUES (?,?,?,?,?)",
                             (hive_id, now, type_, msg, sev),
                         )
-                        if sev == "critical":
+                        # Push pour toute alerte critique ET pour les alertes
+                        # de fréquence (essaimage) même au niveau warning
+                        if sev == "critical" or type_.startswith("frequence_"):
                             push_queue.append((hive_id, msg))
 
                     # Commit toujours — les UPDATE de résolution doivent aussi être persistés
