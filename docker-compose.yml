@@ -44,7 +44,7 @@ services:
   sensor-mock:
     image: python:3.12-slim
     command: >
-      sh -c "pip install pandas -q && python /bdd/moks_live.py"
+      sh -c "pip install pandas -q && python '/bdd/recuperation _donnees.py'"
     environment:
       - DB_PATH=/db/RucheIA.db
       - CSV_TEMP=/backend/temperature_2017.csv
