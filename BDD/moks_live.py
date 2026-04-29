@@ -5,9 +5,11 @@ import random
 from datetime import datetime
 
 # --- CONFIGURATION ---
-DB_NAME = 'RucheIA.db'
-FICHIER_TEMP = 'temperature_2017.csv'
-FICHIER_POIDS = 'weight_2017.csv'
+import os
+_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_NAME = os.path.join(_DIR, '..', 'backend', 'RucheIA.db')
+FICHIER_TEMP = os.path.join(_DIR, 'temperature_2017.csv')
+FICHIER_POIDS = os.path.join(_DIR, 'weight_2017.csv')
 DELAI_ENVOI = 5  # secondes entre chaque mesure
 
 def simulation_live():
