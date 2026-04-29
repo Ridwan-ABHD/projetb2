@@ -1,68 +1,73 @@
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from database import get_db
-from models import Hive, SensorReading, Alert
-from schemas import HiveOut, SensorReadingOut
+from fastapi import APIRouter, HTTPException
+from database import get_db_connection
 
 router = APIRouter(prefix="/hives", tags=["ruches"])
 
+@router.get("/")
+def list_hives():
+    """Liste TES ruches réelles à partir de la table ruches."""
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        
+        # On récupère les IDs réels (ceux que j'ai vus sur ta photo)
+        cursor.execute("SELECT id_ruche FROM ruches")
+        hives = cursor.fetchall()
+        
+        result = []
+        for hive in hives:
+            hid = hive['id_ruche']
+            
+            # On récupère la dernière mesure pour savoir si la ruche est "vivante"
+            cursor.execute("""
+                SELECT temperature, poids, frequence_moyenne, timestamp 
+                FROM mesures 
+                WHERE id_ruche = ? 
+                ORDER BY timestamp DESC LIMIT 1
+            """, (hid,))
+            last = cursor.fetchone()
+            
+            result.append({
+                "id": hid,
+                "name": f"Ruche {hid}", # On génère un nom propre pour l'affichage
+                "last_reading": dict(last) if last else None
+            })
+        return result
 
-@router.get("/", response_model=List[HiveOut])
-def list_hives(db: Session = Depends(get_db)):
-    hives = db.query(Hive).all()
-    result = []
-    for hive in hives:
-        last = (
-            db.query(SensorReading)
-            .filter_by(hive_id=hive.id)
-            .order_by(SensorReading.timestamp.desc())
-            .first()
-        )
-        active_alerts = db.query(Alert).filter_by(hive_id=hive.id, is_resolved=False).all()
-        result.append(
-            HiveOut(
-                id=hive.id,
-                name=hive.name,
-                location=hive.location,
-                status=hive.status,
-                last_reading=last,
-                active_alerts=active_alerts,
-            )
-        )
-    return result
+@router.get("/{hive_id}")
+def get_hive(hive_id: str):
+    """Détails d'une ruche spécifique."""
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        
+        # On vérifie si elle existe
+        cursor.execute("SELECT id_ruche FROM ruches WHERE id_ruche = ?", (hive_id,))
+        if not cursor.fetchone():
+            raise HTTPException(status_code=404, detail="Ruche introuvable")
+            
+        # On récupère sa dernière mesure complète
+        cursor.execute("""
+            SELECT * FROM mesures 
+            WHERE id_ruche = ? 
+            ORDER BY timestamp DESC LIMIT 1
+        """, (hive_id,))
+        last = cursor.fetchone()
+        
+        return {
+            "id": hive_id,
+            "data": dict(last) if last else "Aucune donnée"
+        }
 
-
-@router.get("/{hive_id}", response_model=HiveOut)
-def get_hive(hive_id: int, db: Session = Depends(get_db)):
-    hive = db.get(Hive, hive_id)
-    if not hive:
-        raise HTTPException(status_code=404, detail="Ruche introuvable")
-    last = (
-        db.query(SensorReading)
-        .filter_by(hive_id=hive.id)
-        .order_by(SensorReading.timestamp.desc())
-        .first()
-    )
-    active_alerts = db.query(Alert).filter_by(hive_id=hive.id, is_resolved=False).all()
-    return HiveOut(
-        id=hive.id,
-        name=hive.name,
-        location=hive.location,
-        status=hive.status,
-        last_reading=last,
-        active_alerts=active_alerts,
-    )
-
-
-@router.get("/{hive_id}/history", response_model=List[SensorReadingOut])
-def get_history(hive_id: int, limit: int = 50, db: Session = Depends(get_db)):
-    if not db.get(Hive, hive_id):
-        raise HTTPException(status_code=404, detail="Ruche introuvable")
-    return (
-        db.query(SensorReading)
-        .filter_by(hive_id=hive_id)
-        .order_by(SensorReading.timestamp.desc())
-        .limit(limit)
-        .all()
-    )
+@router.get("/{hive_id}/history")
+def get_history(hive_id: str, limit: int = 50):
+    """Historique des mesures pour les graphiques du dashboard."""
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT timestamp, temperature, poids, frequence_moyenne 
+            FROM mesures 
+            WHERE id_ruche = ? 
+            ORDER BY timestamp DESC 
+            LIMIT ?
+        """, (hive_id, limit))
+        
+        return [dict(row) for row in cursor.fetchall()]

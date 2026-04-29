@@ -1,47 +1,60 @@
 import random
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from database import get_db
-from models import Hive, SensorReading
-from schemas import DiagnosisRequest, DiagnosisResult
+from fastapi import APIRouter, HTTPException
+from database import get_db_connection
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/diagnose", tags=["diagnostic IA"])
 
+# On définit des modèles simples pour les échanges de données
+class DiagnosisRequest(BaseModel):
+    hive_id: str
+    duration_seconds: int = 10
 
-@router.post("/", response_model=DiagnosisResult)
-def run_diagnosis(req: DiagnosisRequest, db: Session = Depends(get_db)):
-    hive = db.get(Hive, req.hive_id)
-    if not hive:
-        raise HTTPException(status_code=404, detail="Ruche introuvable")
+@router.post("/")
+def run_diagnosis(req: DiagnosisRequest):
+    """
+    Simule une analyse IA en temps réel basée sur la 
+    dernière fréquence enregistrée dans ta BDD.
+    """
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        
+        # 1. On vérifie si la ruche existe
+        cursor.execute("SELECT id_ruche FROM ruches WHERE id_ruche = ?", (req.hive_id,))
+        hive = cursor.fetchone()
+        if not hive:
+            raise HTTPException(status_code=404, detail="Ruche introuvable")
 
-    last = (
-        db.query(SensorReading)
-        .filter_by(hive_id=req.hive_id)
-        .order_by(SensorReading.timestamp.desc())
-        .first()
-    )
+        # 2. On récupère la toute dernière fréquence (calculée par ton script analyse_ruche.py)
+        cursor.execute("""
+            SELECT frequence_moyenne FROM mesures 
+            WHERE id_ruche = ? AND frequence_moyenne IS NOT NULL
+            ORDER BY timestamp DESC LIMIT 1
+        """, (req.hive_id,))
+        last = cursor.fetchone()
 
-    freq = last.frequency_hz if last else 220.0 + random.uniform(-20, 20)
+    # 3. Logique de diagnostic basée sur TES vraies données
+    # Si on n'a pas encore de mesure, on prend une base neutre
+    freq = last['frequence_moyenne'] if last else 220.0
 
     if freq >= 280:
         prob = round(random.uniform(75, 95), 1)
-        stress = "Élevé"
-        reco = "Diviser la colonie sous 48h pour prévenir l'essaimage."
+        stress = "Élevé (Danger d'essaimage)"
+        reco = "Diviser la colonie sous 48h : risque d'essaimage imminent."
     elif freq >= 260:
         prob = round(random.uniform(40, 74), 1)
         stress = "Modéré"
-        reco = "Surveiller l'évolution de la fréquence. Inspecter la ruche dans les 72h."
+        reco = "Surveiller l'évolution. Inspecter la ruche d'ici 3 jours."
     else:
         prob = round(random.uniform(5, 39), 1)
         stress = "Normal"
-        reco = "Aucune action requise. La colonie est en bon état."
+        reco = "La colonie semble calme. Aucune intervention nécessaire."
 
-    return DiagnosisResult(
-        hive_id=hive.id,
-        hive_name=hive.name,
-        swarming_probability=prob,
-        dominant_frequency=freq,
-        stress_level=stress,
-        duration_seconds=req.duration_seconds,
-        recommendation=reco,
-    )
+    return {
+        "hive_id": req.hive_id,
+        "swarming_probability": prob,
+        "dominant_frequency": freq,
+        "stress_level": stress,
+        "recommendation": reco,
+        "analysis_duration": f"{req.duration_seconds}s"
+    }

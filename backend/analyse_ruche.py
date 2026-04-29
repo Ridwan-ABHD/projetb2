@@ -1,17 +1,7 @@
-import sqlite3
+from projetb2.backend.database import get_db_connection
 import librosa
 import numpy as np
 import os 
-
-DB_NAME = 'RucheIA.db'
-
-def connexion_db():
-    try:
-        connexion = sqlite3.connect(DB_NAME)
-        return connexion
-    except sqlite3.Error as e:
-        print(f"❌ Erreur de connexion : {e}")
-        return None
 
 def son_abeille(debut, fin, nom_wav):
     longueur = fin - debut
@@ -28,9 +18,9 @@ def detecter_frequence(y, sr):
     return frequence[index_max]
 
 # --- DÉBUT DU TRAITEMENT ---
-ma_base = connexion_db()
-if ma_base:
-    curseur = ma_base.cursor()
+
+with get_db_connection() as conn:
+    curseur = conn.cursor()
 
     # 1. On récupère les fichiers audio qui ont des segments marqués 'bee'
     curseur.execute("""
@@ -69,13 +59,12 @@ if ma_base:
             curseur.execute("""
                 UPDATE mesures 
                 SET frequence_moyenne = ? 
-                WHERE id_ruche = ? AND frequence_moyenne IS NULL
+                WHERE id_ruche = ? 
             """, (freq_moyenne, id_ruche))
             
-            ma_base.commit()
+            conn.commit()
             print(f"  ✅ Base de données mise à jour pour la ruche {id_ruche}.")
         else:
             print(f"  ❌ Aucune fréquence calculée pour {nom_fichier}.")
 
     print("\n🏁 Analyse terminée. Ta table 'mesures' contient maintenant les diagnostics IA.")
-    ma_base.close()

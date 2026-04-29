@@ -1,20 +1,14 @@
-import os
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, DeclarativeBase
+import sqlite3
+from contextlib import contextmanager
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./apicole.db")
+DB_PATH = "RucheIA.db"
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-class Base(DeclarativeBase):
-    pass
-
-
-def get_db():
-    db = SessionLocal()
+@contextmanager
+def get_db_connection():
+    """Permet d'ouvrir et fermer la connexion SQL proprement."""
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row  # Permet d'accéder aux colonnes par nom (ex: row['poids'])
     try:
-        yield db
+        yield conn
     finally:
-        db.close()
+        conn.close()

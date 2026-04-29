@@ -1,38 +1,47 @@
-from typing import Dict
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-from database import get_db
-from models import Threshold
-from schemas import ThresholdUpdate
+from fastapi import APIRouter, HTTPException
+from database import get_db_connection
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/settings", tags=["paramètres"])
 
-_DEFAULTS: Dict[str, float] = {
-    "freq_warning": 260.0,
-    "freq_critical": 280.0,
-    "temp_warning": 36.0,
-    "temp_critical": 38.0,
-    "humidity_min": 50.0,
-    "humidity_max": 80.0,
-    "weight_drop_threshold": 2.0,
-}
+class SeuilUpdate(BaseModel):
+    temp_min: float
+    freq_min: float
+    freq_max: float
 
+@router.get("/")
+def get_settings():
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM regles_alerte")
+        return [dict(row) for row in cursor.fetchall()]
 
-@router.get("/", response_model=Dict[str, float])
-def get_settings(db: Session = Depends(get_db)):
-    result = dict(_DEFAULTS)
-    for row in db.query(Threshold).all():
-        result[row.key] = row.value
-    return result
+@router.get("/{id_ruche}")
+def get_hive_settings(id_ruche: str):
+    """Récupère les seuils spécifiques à une ruche"""
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM regles_alerte WHERE id_ruche = ?", (id_ruche,))
+        row = cursor.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Réglages non trouvés pour cette ruche")
+        return dict(row)
 
+@router.put("/{id_ruche}")
+def update_hive_settings(id_ruche: str, data: SeuilUpdate):
+    """Met à jour les seuils de température d'une ruche"""
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            UPDATE regles_alerte 
+            SET temp_min = ?, freq_min = ?, freq_max = ? 
+            WHERE id_ruche = ?
+        """, (data.temp_min, data.freq_min, data.freq_max, id_ruche))
+        
+        conn.commit()
 
-@router.put("/", response_model=Dict[str, float])
-def update_settings(data: ThresholdUpdate, db: Session = Depends(get_db)):
-    for key, value in data.model_dump().items():
-        row = db.get(Threshold, key)
-        if row:
-            row.value = value
-        else:
-            db.add(Threshold(key=key, value=value))
-    db.commit()
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Ruche non trouvée dans les réglages")
+
     return data.model_dump()

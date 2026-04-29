@@ -2,8 +2,8 @@ import os
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from database import get_db
-from models import Alert, Hive, SensorReading
+from database import get_db_connection
+#from models import Alert, Hive, SensorReading
 
 router = APIRouter(prefix="/chat", tags=["chatbot"])
 
@@ -16,31 +16,24 @@ class ChatResponse(BaseModel):
     response: str
 
 
-def _hive_context(db: Session) -> str:
-    hives = db.query(Hive).all()
+def _hive_context() -> str:
+    # On récupère une connexion directe à SQLite
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        # On récupère les données de la table ruches (id_ruche, temperature, poids, etc.)
+        cursor.execute("SELECT id_ruche, temperature, poids, frequence_moyenne FROM ruches")
+        hives = cursor.fetchall()
+    
     lines = []
     for hive in hives:
-        last = (
-            db.query(SensorReading)
-            .filter_by(hive_id=hive.id)
-            .order_by(SensorReading.timestamp.desc())
-            .first()
-        )
-        active_alerts = db.query(Alert).filter_by(hive_id=hive.id, is_resolved=False).all()
-
-        line = f"- {hive.name} ({hive.location}) : statut={hive.status}"
-        if last:
-            line += (
-                f", fréquence={last.frequency_hz:.0f} Hz"
-                f", température={last.temperature_c:.1f}°C"
-                f", humidité={last.humidity_pct:.0f}%"
-                f", poids={last.weight_kg:.1f} kg"
-            )
-        if active_alerts:
-            line += f", alertes: {', '.join(a.type for a in active_alerts)}"
+        id_r, temp, poids, freq = hive
+        line = f"- Ruche {id_r} : "
+        line += f"Température={temp if temp else 'N/A'}°C, "
+        line += f"Poids={poids if poids else 'N/A'} kg, "
+        line += f"Fréquence={freq if freq else 'N/A'} Hz"
         lines.append(line)
-    return "\n".join(lines)
 
+    return "\n".join(lines)
 
 _SYSTEM_PROMPT = """\
 Tu es un assistant expert en apiculture. Tu aides un apiculteur à surveiller ses ruches connectées.
@@ -53,7 +46,7 @@ Si une fréquence est haute (>300Hz), l'essaimage est probable. Si elle est bass
 
 
 @router.post("/", response_model=ChatResponse)
-def chat(req: ChatRequest, db: Session = Depends(get_db)):
+def chat(req: ChatRequest):
     endpoint    = os.getenv("AZURE_OPENAI_ENDPOINT")
     api_key     = os.getenv("AZURE_OPENAI_API_KEY")
     deployment  = os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-4o")
@@ -73,7 +66,7 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)):
         api_version=api_version,
     )
 
-    context = _hive_context(db)
+    context = _hive_context()
     completion = client.chat.completions.create(
         model=deployment,
         messages=[
