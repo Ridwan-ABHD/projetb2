@@ -232,7 +232,10 @@ app-chat {
 }
 
 .alert.danger strong { color: var(--alert-red); }
+.alert.warn { background: #FFF8E1; border-left-color: var(--orange); }
+.alert.warn strong { color: var(--orange); }
 .alert p { font-size: 14px; font-weight: 500; }
+.alert small { font-size: 11px; color: var(--muted); }
 
 /* --- Indicateurs de statut (dot) --- */
 .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; flex-shrink: 0; }

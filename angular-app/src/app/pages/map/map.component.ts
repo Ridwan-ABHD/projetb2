@@ -1,5 +1,5 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, TitleCasePipe } from '@angular/common';
 import { ApiService, Hive } from '../../core/api.service';
 import { NetworkService } from '../../core/network.service';
 import { NetworkBadgeComponent } from '../../shared/network-badge/network-badge.component';
@@ -7,7 +7,7 @@ import { NetworkBadgeComponent } from '../../shared/network-badge/network-badge.
 @Component({
   selector: 'app-map',
   standalone: true,
-  imports: [CommonModule, NetworkBadgeComponent],
+  imports: [CommonModule, TitleCasePipe, NetworkBadgeComponent],
   templateUrl: './map.component.html',
 })
 export class MapComponent implements OnInit {
@@ -18,10 +18,7 @@ export class MapComponent implements OnInit {
   selectedHive = signal<Hive | null>(null);
 
   get alertCount(): number {
-    return this.hives().filter(h => {
-      const freq = h.last_reading?.frequency_hz;
-      return freq !== null && freq !== undefined && freq >= 260;
-    }).length;
+    return this.hives().filter(h => h.status !== 'normal').length;
   }
 
   ngOnInit(): void {
@@ -40,11 +37,7 @@ export class MapComponent implements OnInit {
   }
 
   hiveStatus(hive: Hive): string {
-    const freq = hive.last_reading?.frequency_hz;
-    if (freq === null || freq === undefined) return 'normal';
-    if (freq >= 280) return 'critical';
-    if (freq >= 260) return 'warning';
-    return 'normal';
+    return hive.status;
   }
 
   hiveColorClass(hive: Hive): string {
