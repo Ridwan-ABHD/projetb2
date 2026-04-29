@@ -1,6 +1,6 @@
 // ─── Caches ──────────────────────────────────────────────────────────────────
-const SHELL_CACHE = 'apicole-shell-v2';
-const API_CACHE   = 'apicole-api-v2';
+const SHELL_CACHE = 'apicole-shell-v3';
+const API_CACHE   = 'apicole-api-v3';
 const ALL_CACHES  = [SHELL_CACHE, API_CACHE];
 
 // Assets précachés à l'installation (URLs stables, sans hash)
