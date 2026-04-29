@@ -5,10 +5,13 @@ import random
 from datetime import datetime
 
 # --- CONFIGURATION ---
-DB_NAME = 'RucheIA.db'
-FICHIER_TEMP = 'temperature_2017.csv'
-FICHIER_POIDS = 'weight_2017.csv'
-DELAI_ENVOI = 5  # secondes entre chaque mesure
+import os
+_DIR = os.path.dirname(os.path.abspath(__file__))
+# En Docker : DB_PATH=/app/RucheIA.db  |  En local : chemin relatif vers backend/
+DB_NAME     = os.environ.get('DB_PATH',    os.path.join(_DIR, '..', 'backend', 'RucheIA.db'))
+FICHIER_TEMP  = os.environ.get('CSV_TEMP',  os.path.join(_DIR, 'temperature_2017.csv'))
+FICHIER_POIDS = os.environ.get('CSV_POIDS', os.path.join(_DIR, 'weight_2017.csv'))
+DELAI_ENVOI = int(os.environ.get('MOCK_INTERVAL', 5))
 
 def simulation_live():
     # 1. Chargement des données sources (tes archives réelles)
@@ -47,14 +50,19 @@ def simulation_live():
                 # Heure actuelle pour simuler le "maintenant"
                 maintenant = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+                # Fréquence simulée selon la ruche (comme le sensor_mock MQTT)
+                BASE_FREQ = {"CF003": 230, "CJ001": 245, "H1": 280}
+                freq = round(BASE_FREQ.get(id_ruche, 250) + random.uniform(-5, 30), 1)
+                humidite = round(60 + random.uniform(-10, 15), 1)
+
                 # 5. Insertion dans la table 'mesures'
                 requete = """
-                    INSERT INTO mesures (id_ruche, timestamp, temperature, poids) 
-                    VALUES (?, ?, ?, ?)
+                    INSERT INTO mesures (id_ruche, timestamp, temperature, poids, frequence_moyenne, humidite)
+                    VALUES (?, ?, ?, ?, ?, ?)
                 """
-                curseur.execute(requete, (id_ruche, maintenant, val_temp, val_poids))
-                
-                print(f"📡 [{maintenant}] Ruche {id_ruche} -> {val_temp}°C | {val_poids}kg")
+                curseur.execute(requete, (id_ruche, maintenant, val_temp, val_poids, freq, humidite))
+
+                print(f"📡 [{maintenant}] Ruche {id_ruche} -> {val_temp}°C | {val_poids}kg | {freq}Hz")
 
             # 6. Sauvegarde et fermeture de la connexion pour ce cycle
             conn.commit()
