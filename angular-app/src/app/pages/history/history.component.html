@@ -1,4 +1,3 @@
-<!-- En-tête de la page Historique -->
 <header class="app-header">
   <div class="header-top">
     <div>
@@ -6,36 +5,33 @@
       <h1>Historique</h1>
     </div>
   </div>
-  <small>Alertes des 7 derniers jours · mise à jour auto</small>
+  <small>Alertes détectées · mise à jour auto</small>
 </header>
 
 <main class="app-main">
 
-  <!-- Chips de filtrage -->
   <div class="chips">
-    <button class="chip" [class.active]="activeFilter() === 'all'"      (click)="setFilter('all')">Tous</button>
-    <button class="chip" [class.active]="activeFilter() === 'critical'" (click)="setFilter('critical')">🔴 Critiques</button>
-    <button class="chip" [class.active]="activeFilter() === 'warning'"  (click)="setFilter('warning')">🟡 Avertissements</button>
-    <button class="chip" [class.active]="activeFilter() === 'info'"     (click)="setFilter('info')">🔵 Info</button>
-    <button class="chip" [class.active]="activeFilter() === 'resolved'" (click)="setFilter('resolved')">✅ Résolues</button>
+    <button class="chip" [class.active]="activeFilter() === 'all'"    (click)="setFilter('all')">Tous</button>
+    <button class="chip" [class.active]="activeFilter() === 'CF003'"  (click)="setFilter('CF003')">CF003</button>
+    <button class="chip" [class.active]="activeFilter() === 'CJ001'"  (click)="setFilter('CJ001')">CJ001</button>
+    <button class="chip" [class.active]="activeFilter() === 'H1'"     (click)="setFilter('H1')">H1</button>
   </div>
 
-  <!-- Message si aucune alerte -->
   @if (hasNoAlerts()) {
     <p class="empty-state">Aucune alerte enregistrée. Vos ruches vont bien ! 🌿</p>
   }
 
-  <!-- Liste des groupes par jour -->
   @for (group of filteredGroups(); track group.day) {
     <section class="day">
       <h2>{{ group.day }}</h2>
 
-      @for (alert of group.items; track alert.id) {
+      @for (alert of group.items; track alert.id_mesure) {
         <article class="event">
           <span class="event-bar" [ngClass]="barClass(alert)"></span>
           <div class="event-body">
-            <h3>{{ severityLabel(alert) }} — {{ hiveName(alert.hive_id) }}</h3>
-            <p>{{ alert.message }}</p>
+            <!-- ✅ id_ruche et nom_alerte au lieu de hive_id et message -->
+            <h3>{{ severityLabel(alert) }} — Ruche {{ alert.id_ruche }}</h3>
+            <p>{{ alert.nom_alerte }}</p>
             <time>{{ timeAgo(alert.timestamp) }}</time>
           </div>
         </article>

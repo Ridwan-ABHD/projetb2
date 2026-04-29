@@ -23,27 +23,26 @@
       @for (hive of hives(); track hive.id) {
         <div
           class="hive"
-          [ngClass]="hiveColorClass(hive.status)"
+          [ngClass]="hiveColorClass(hive)"
           (click)="selectHive(hive)"
           role="button"
           [attr.aria-label]="'Voir détails ' + hive.name"
         >
           <header>
-            <span class="badge" [ngClass]="hiveBadgeClass(hive.status)">
-              {{ hiveStatusLabel(hive.status) }}
+            <span class="badge" [ngClass]="hiveBadgeClass(hive)">
+              {{ hiveStatusLabel(hive) }}
             </span>
           </header>
           <h3>{{ hive.name }}</h3>
-          <p class="hive-location">📍 {{ hive.location }}</p>
           <p>
             @if (hive.last_reading) {
-              {{ hive.last_reading.frequency_hz | number:'1.0-0' }} Hz
+              {{ hive.last_reading.frequence_moyenne ?? '—' }} Hz
             } @else { — Hz }
           </p>
           <p>
             @if (hive.last_reading) {
-              {{ hive.last_reading.temperature_c | number:'1.1-1' }}°C ·
-              {{ hive.last_reading.humidity_pct  | number:'1.0-0' }}%
+              {{ hive.last_reading.temperature | number:'1.1-1' }}°C ·
+              {{ hive.last_reading.poids | number:'1.1-1' }} kg
             } @else { — · — }
           </p>
         </div>
@@ -60,62 +59,41 @@
   <header class="app-header hive-detail-header-bar">
     <div class="header-top">
       <button class="back-btn" (click)="closeDetail()">← Retour</button>
-      <span class="badge" [ngClass]="hiveBadgeClass(selectedHive()!.status)">
-        {{ hiveStatusLabel(selectedHive()!.status) }}
+      <span class="badge" [ngClass]="hiveBadgeClass(selectedHive()!)">
+        {{ hiveStatusLabel(selectedHive()!) }}
       </span>
     </div>
     <h1 class="hive-detail-name">{{ selectedHive()!.name }}</h1>
-    <small>📍 {{ selectedHive()!.location }}</small>
   </header>
 
   <main class="app-main">
-    <div class="hive-detail-card" [ngClass]="hiveColorClass(selectedHive()!.status)">
+    <div class="hive-detail-card" [ngClass]="hiveColorClass(selectedHive()!)">
 
       @if (selectedHive()!.last_reading) {
         <div class="hive-detail-sensors">
           <div class="sensor-item">
             <small>🎵 Fréquence</small>
-            <strong>{{ selectedHive()!.last_reading!.frequency_hz | number:'1.0-0' }} Hz</strong>
+            <strong>{{ selectedHive()!.last_reading!.frequence_moyenne ?? '—' }} Hz</strong>
           </div>
           <div class="sensor-item">
             <small>🌡️ Température</small>
-            <strong>{{ selectedHive()!.last_reading!.temperature_c | number:'1.1-1' }} °C</strong>
-          </div>
-          <div class="sensor-item">
-            <small>💧 Humidité</small>
-            <strong>{{ selectedHive()!.last_reading!.humidity_pct | number:'1.0-0' }} %</strong>
+            <strong>{{ selectedHive()!.last_reading!.temperature | number:'1.1-1' }} °C</strong>
           </div>
           <div class="sensor-item">
             <small>⚖️ Poids</small>
-            <strong>{{ selectedHive()!.last_reading!.weight_kg | number:'1.1-1' }} kg</strong>
+            <strong>{{ selectedHive()!.last_reading!.poids | number:'1.1-1' }} kg</strong>
+          </div>
+          <div class="sensor-item">
+            <small>🕐 Dernière mesure</small>
+            <strong>{{ timeAgo(selectedHive()!.last_reading!.timestamp) }}</strong>
           </div>
         </div>
-        <p class="hive-detail-time">
-          Dernière mesure : {{ timeAgo(selectedHive()!.last_reading!.timestamp) }}
-        </p>
       } @else {
         <p class="empty-state">Aucune donnée capteur disponible.</p>
       }
     </div>
 
-    @if (selectedHive()!.active_alerts.length > 0) {
-      <div class="hive-detail-alerts">
-        <h4>⚠️ Alertes actives ({{ selectedHive()!.active_alerts.length }})</h4>
-        @for (alert of selectedHive()!.active_alerts; track alert.id) {
-          <div class="event">
-            <span class="event-bar"
-              [ngClass]="alert.severity === 'critical' ? 'alert' : alert.severity === 'warning' ? 'warn' : 'info'">
-            </span>
-            <div class="event-body">
-              <h3>{{ alert.type }}</h3>
-              <p>{{ alert.message }}</p>
-            </div>
-          </div>
-        }
-      </div>
-    } @else {
-      <p class="hive-detail-time">✅ Aucune alerte active</p>
-    }
+    <p class="hive-detail-time">✅ Aucune alerte active</p>
   </main>
 
 }

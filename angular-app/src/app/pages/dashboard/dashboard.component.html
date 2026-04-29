@@ -1,91 +1,78 @@
-<!-- En-tête du Dashboard -->
 <header class="app-header">
   <div class="header-top">
     <div>
       <h1>BeeGuard AI</h1>
     </div>
-    <!-- Lien vers l'assistant IA -->
     <a routerLink="/chat" class="icon-btn" aria-label="Assistant IA">💬</a>
   </div>
-  <!-- hives().length lit la valeur du signal "hives" -->
   <small>{{ hives().length }} ruche{{ hives().length > 1 ? 's' : '' }} surveillée{{ hives().length > 1 ? 's' : '' }}</small>
 </header>
 
 <main class="app-main">
 
-  <!-- Bannière d'alerte critique -->
-  <!-- @if est la nouvelle syntaxe Angular 17+ (remplace *ngIf) -->
   @if (criticalAlert()) {
     <div class="alert danger">
-      <strong>🚨 Alerte IA · Ruche n°{{ criticalAlert()!.hive_id }}</strong>
-      <p>{{ criticalAlert()!.message }}</p>
+      <!-- ✅ id_ruche au lieu de hive_id -->
+      <strong>🚨 Alerte · Ruche {{ criticalAlert()!.id_ruche }}</strong>
+      <!-- ✅ nom_alerte au lieu de message -->
+      <p>{{ criticalAlert()!.nom_alerte }}</p>
     </div>
   }
 
-  <!-- Section KPIs en temps réel -->
   <section class="section">
     <h2 class="section-title">Indicateurs en direct</h2>
-
     <div class="kpi-grid">
 
-      <!-- KPI principal : fréquence acoustique -->
       <div class="kpi-big">
         <small>Fréquence sonore moyenne</small>
-        <!-- Le pipe "number:'1.0-0'" arrondit à 0 décimale -->
         <h2>{{ avgFreq() | number:'1.0-0' }} Hz</h2>
-        <small>↑ Seuil d'alerte : 250 Hz</small>
+        <small>↑ Seuil d'alerte : 260 Hz</small>
       </div>
 
-      <!-- KPI secondaire : température -->
       <div class="kpi">
         <small>Température</small>
-        <!-- "1.1-1" = minimum 1 décimale, maximum 1 décimale -->
         <h2>{{ avgTemp() | number:'1.1-1' }}°C</h2>
       </div>
 
-      <!-- KPI secondaire : humidité -->
+      <!-- ✅ Humidité supprimée (pas dans la BDD) — remplacée par poids -->
       <div class="kpi">
-        <small>Humidité</small>
-        <h2>{{ avgHumidity() | number:'1.0-0' }}%</h2>
+        <small>Ruches actives</small>
+        <h2>{{ hives().length }}</h2>
       </div>
 
     </div>
   </section>
 
-  <!-- Section liste des ruches -->
   <section class="section">
     <h2 class="section-title">
       Mes ruches
-      <!-- routerLink navigue vers la page /map -->
       <a routerLink="/map">Tout voir →</a>
     </h2>
 
     <div id="hive-list">
-
-      <!-- @for boucle sur chaque ruche — track hive.id optimise le rendu -->
       @for (hive of hives(); track hive.id) {
         <a routerLink="/map" class="row">
-          <!-- [ngClass] applique la classe dynamiquement selon le statut -->
-          <span class="dot" [ngClass]="statusDot(hive.status)"></span>
+          <!-- ✅ statusDot(hive) au lieu de statusDot(hive.status) -->
+          <span class="dot" [ngClass]="statusDot(hive)"></span>
           <div>
-            <strong>{{ hive.name }} · {{ hive.location }}</strong>
+            <strong>{{ hive.name }}</strong>
             <small>
               @if (hive.last_reading) {
-                {{ hive.last_reading.frequency_hz | number:'1.0-0' }} Hz ·
-                {{ hive.last_reading.temperature_c | number:'1.1-1' }}°C ·
+                <!-- ✅ vrais noms de colonnes -->
+                {{ hive.last_reading.frequence_moyenne ?? 'N/A' }} Hz ·
+                {{ hive.last_reading.temperature | number:'1.1-1' }}°C ·
+                {{ hive.last_reading.poids | number:'1.1-1' }} kg ·
               }
-              {{ statusLabel(hive.status) }}
+              {{ statusLabel(hive) }}
             </small>
           </div>
           <span style="color: var(--muted); font-size: 18px;">›</span>
         </a>
       }
 
-      <!-- Message si les données sont en cours de chargement -->
       @if (hives().length === 0) {
         <p class="empty-state">Connexion au backend en cours…</p>
       }
-
     </div>
   </section>
 

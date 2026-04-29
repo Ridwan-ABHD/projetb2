@@ -1,80 +1,76 @@
-// api.service.ts — Service HTTP centralisé
-// Toutes les communications avec le backend Python passent par ici
-
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-export interface Alert {
-  id: number;
-  hive_id: number;
-  severity: 'critical' | 'warning' | 'info';
-  type: string;
-  message: string;
+export interface LastReading {
+  temperature: number;
+  poids: number;
+  frequence_moyenne: number | null;
   timestamp: string;
-  is_resolved: boolean;
 }
 
 export interface Hive {
-  id: number;
+  id: string;
   name: string;
-  location: string;
-  status: 'normal' | 'warning' | 'critical';
-  last_reading: {
-    id: number;
-    frequency_hz: number;
-    temperature_c: number;
-    humidity_pct: number;
-    weight_kg: number;
-    timestamp: string;
-  } | null;
-  active_alerts: Alert[];
+  last_reading: LastReading | null;
 }
 
-export interface DiagnoseResult {
-  hive_name: string;
-  swarming_probability: number;
-  dominant_frequency: number;
-  stress_level: string;
-  duration_seconds: number;
-  recommendation: string;
+export interface Alert {
+  id_mesure: number;
+  id_ruche: string;
+  timestamp: string;
+  temperature: number;
+  poids: number;
+  frequence_moyenne: number | null;
+  nom_alerte: string;
+  description: string;
 }
 
 export interface AppSettings {
-  freq_warning: number;
-  freq_critical: number;
-  temp_warning: number;
-  temp_critical: number;
-  humidity_min: number;
-  humidity_max: number;
-  weight_drop_threshold: number;
+  id_regle: number;
+  nom_alerte: string;
+  freq_min: number;
+  freq_max: number;
+  temp_min: number;
+  description: string;
+}
+
+export interface DiagnoseResult {
+  hive_id: string;
+  swarming_probability: number;
+  dominant_frequency: number;
+  stress_level: string;
+  recommendation: string;
+  analysis_duration: string;
 }
 
 export interface ChatResponse {
   response: string;
 }
 
-// Base vide = chemins relatifs → nginx proxy vers backend en prod Docker
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private http = inject(HttpClient);
-  private base = '';
+  private base = 'http://localhost:8000';
 
   getHives(): Observable<Hive[]> {
     return this.http.get<Hive[]>(`${this.base}/hives/`);
   }
 
-  getAlerts(resolved?: boolean): Observable<Alert[]> {
-    const q = resolved !== undefined ? `?resolved=${resolved}` : '';
-    return this.http.get<Alert[]>(`${this.base}/alerts/${q}`);
+  getAlerts(): Observable<Alert[]> {
+    return this.http.get<Alert[]>(`${this.base}/alerts/`);
   }
 
-  getSettings(): Observable<AppSettings> {
-    return this.http.get<AppSettings>(`${this.base}/settings/`);
+  getSettings(): Observable<AppSettings[]> {
+    return this.http.get<AppSettings[]>(`${this.base}/settings/`);
   }
 
-  saveSettings(settings: AppSettings): Observable<AppSettings> {
-    return this.http.put<AppSettings>(`${this.base}/settings/`, settings);
+  saveSettings(id_ruche: string, data: Partial<AppSettings>): Observable<AppSettings> {
+    return this.http.put<AppSettings>(`${this.base}/settings/${id_ruche}`, data);
+  }
+
+  diagnose(hive_id: string, duration_seconds: number = 10): Observable<DiagnoseResult> {
+    return this.http.post<DiagnoseResult>(`${this.base}/diagnose/`, { hive_id, duration_seconds });
   }
 
   chat(message: string): Observable<ChatResponse> {
