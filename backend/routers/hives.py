@@ -4,30 +4,45 @@ from database import get_db_connection
 router = APIRouter(prefix="/hives", tags=["ruches"])
 
 
+# --- DANS TON FICHIER hives.py ---
+
 def _row_to_reading(row) -> dict | None:
     if not row:
         return None
+    
+    # Correction : on vérifie la présence des clés de manière plus sûre
+    # et on s'assure que frequency_hz reçoit bien la valeur de frequence_moyenne
     return {
-        "id":           row["id_mesure"],
-        "frequency_hz": row["frequence_moyenne"] or 0.0,
-        "temperature_c": row["temperature"] or 0.0,
-        "humidity_pct": row["humidite"] or 65.0,
-        "weight_kg":    row["poids"] or 0.0,
-        "timestamp":    row["timestamp"],
+        "id":            row["id_mesure"],
+        "frequency_hz":  row["frequence_moyenne"] if row["frequence_moyenne"] is not None else 0.0,
+        "temperature_c": row["temperature"] if row["temperature"] is not None else 0.0,
+        "humidity_pct":  65.0, # Valeur fixe si tu n'as pas de capteur d'humidité
+        "weight_kg":     row["poids"] if row["poids"] is not None else 0.0,
+        "timestamp":     row["timestamp"],
     }
-
 
 @router.get("/")
 def list_hives():
     with get_db_connection() as conn:
-        hives = conn.execute("SELECT id_ruche, nom, localisation, statut FROM ruches").fetchall()
+        hives = conn.execute("SELECT id_ruche, id_site, type_ruche FROM ruches").fetchall()
         result = []
         for h in hives:
             hid = h["id_ruche"]
+            # IMPORTANT : On s'assure de bien prendre frequence_moyenne ici
             last = conn.execute("""
-                SELECT id_mesure, timestamp, temperature, poids, frequence_moyenne, humidite
-                FROM mesures WHERE id_ruche = ? ORDER BY timestamp DESC LIMIT 1
+                SELECT id_mesure, timestamp, temperature, poids, frequence_moyenne
+                FROM mesures 
+                WHERE id_ruche = ? 
+                AND frequence_moyenne IS NOT NULL 
+                ORDER BY timestamp DESC LIMIT 1
             """, (hid,)).fetchone()
+            
+            # Si aucune ligne avec fréquence n'existe, on prend la toute dernière mesure quand même
+            if not last:
+                last = conn.execute("""
+                    SELECT id_mesure, timestamp, temperature, poids, frequence_moyenne
+                    FROM mesures WHERE id_ruche = ? ORDER BY timestamp DESC LIMIT 1
+                """, (hid,)).fetchone()
 
             alerts = conn.execute("""
                 SELECT id, id_ruche as hive_id, timestamp, type, message, severite as severity, is_resolved
@@ -36,9 +51,9 @@ def list_hives():
 
             result.append({
                 "id":           hid,
-                "name":         h["nom"] or f"Ruche {hid}",
-                "location":     h["localisation"] or "",
-                "status":       h["statut"] or "normal",
+                "name":         hid,
+                "location":     h["id_site"] or "",
+                "status":       h["type_ruche"] or "normal",
                 "last_reading": _row_to_reading(last),
                 "active_alerts": [dict(a) for a in alerts],
             })
@@ -49,13 +64,13 @@ def list_hives():
 def get_hive(hive_id: str):
     with get_db_connection() as conn:
         h = conn.execute(
-            "SELECT id_ruche, nom, localisation, statut FROM ruches WHERE id_ruche = ?", (hive_id,)
+            "SELECT id_ruche, id_site, type_ruche FROM ruches WHERE id_ruche = ?", (hive_id,)
         ).fetchone()
         if not h:
             raise HTTPException(status_code=404, detail="Ruche introuvable")
 
         last = conn.execute("""
-            SELECT id_mesure, timestamp, temperature, poids, frequence_moyenne, humidite
+            SELECT id_mesure, timestamp, temperature, poids, frequence_moyenne
             FROM mesures WHERE id_ruche = ? ORDER BY timestamp DESC LIMIT 1
         """, (hive_id,)).fetchone()
 
@@ -66,9 +81,9 @@ def get_hive(hive_id: str):
 
         return {
             "id":           hive_id,
-            "name":         h["nom"] or f"Ruche {hive_id}",
-            "location":     h["localisation"] or "",
-            "status":       h["statut"] or "normal",
+            "name":         hive_id,
+            "location":     h["id_site"] or "",
+            "status":       h["type_ruche"] or "normal",
             "last_reading": _row_to_reading(last),
             "active_alerts": [dict(a) for a in alerts],
         }
@@ -79,7 +94,7 @@ def get_history(hive_id: str, limit: int = 50):
     with get_db_connection() as conn:
         rows = conn.execute("""
             SELECT id_mesure as id, timestamp, temperature as temperature_c,
-                   poids as weight_kg, frequence_moyenne as frequency_hz, humidite as humidity_pct
+                   poids as weight_kg, frequence_moyenne as frequency_hz
             FROM mesures WHERE id_ruche = ? ORDER BY timestamp DESC LIMIT ?
         """, (hive_id, limit)).fetchall()
-        return [dict(r) for r in rows]
+        return [{**dict(r), "humidity_pct": 65.0} for r in rows]

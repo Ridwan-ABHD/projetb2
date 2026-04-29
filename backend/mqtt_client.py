@@ -90,15 +90,24 @@ def _on_message(client, userdata, msg):
         hid = payload.get("hive_id")
         temp = payload.get("temperature_c")
         poids = payload.get("weight_kg")
+        freq = payload.get("frequency_hz")
 
         with get_db_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO mesures (id_ruche, timestamp, temperature, poids)
-                VALUES (?, ?, ?, ?)
-            """, (hid, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), temp, poids))
+                INSERT INTO mesures (id_ruche, timestamp, temperature, poids, frequence_moyenne)
+                VALUES (?, ?, ?, ?, ?)
+            """, (
+                hid,
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                temp,
+                poids,
+                freq,
+            ))
             conn.commit()
-            logger.info(f"📥 Données reçues via MQTT pour la ruche {hid}")
+            logger.info(
+                f"📥 Données reçues via MQTT pour la ruche {hid} | {freq if freq is not None else 'no freq'} Hz"
+            )
 
         # Push notification si température critique
         if temp is not None and temp >= _TEMP_CRITICAL:

@@ -1,9 +1,12 @@
 import os
 import sqlite3
 from contextlib import contextmanager
+from pathlib import Path
 
-# En Docker le volume est monté sur /app/db/  |  En local : dossier courant
-DB_PATH = os.environ.get("DB_PATH", "RucheIA.db")
+# En Docker le volume est monté sur /app/db/  |  En local : backend/RucheIA.db
+DB_PATH = os.environ.get("DB_PATH")
+if not DB_PATH:
+    DB_PATH = Path(__file__).resolve().parent / "RucheIA.db"
 
 @contextmanager
 def get_db_connection():

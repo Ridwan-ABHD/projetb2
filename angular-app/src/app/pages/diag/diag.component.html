@@ -83,7 +83,7 @@
       <!-- En-tête du résultat -->
       <header>
         <span class="badge badge-green">IA</span>
-        <h3>{{ result()!.hive_name }} · Résultat</h3>
+        <h3>Ruche {{ result()!.hive_id }} · Résultat</h3>
       </header>
 
       <!-- Données structurées -->
@@ -105,7 +105,7 @@
         </div>
         <div>
           <dt>Durée analysée</dt>
-          <dd>{{ result()!.duration_seconds }} s</dd>
+          <dd>{{ result()!.analysis_duration }}</dd>
         </div>
       </dl>
 
