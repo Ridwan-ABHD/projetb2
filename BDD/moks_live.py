@@ -7,10 +7,11 @@ from datetime import datetime
 # --- CONFIGURATION ---
 import os
 _DIR = os.path.dirname(os.path.abspath(__file__))
-DB_NAME = os.path.join(_DIR, '..', 'backend', 'RucheIA.db')
-FICHIER_TEMP = os.path.join(_DIR, 'temperature_2017.csv')
-FICHIER_POIDS = os.path.join(_DIR, 'weight_2017.csv')
-DELAI_ENVOI = 5  # secondes entre chaque mesure
+# En Docker : DB_PATH=/app/RucheIA.db  |  En local : chemin relatif vers backend/
+DB_NAME     = os.environ.get('DB_PATH',    os.path.join(_DIR, '..', 'backend', 'RucheIA.db'))
+FICHIER_TEMP  = os.environ.get('CSV_TEMP',  os.path.join(_DIR, 'temperature_2017.csv'))
+FICHIER_POIDS = os.environ.get('CSV_POIDS', os.path.join(_DIR, 'weight_2017.csv'))
+DELAI_ENVOI = int(os.environ.get('MOCK_INTERVAL', 5))
 
 def simulation_live():
     # 1. Chargement des données sources (tes archives réelles)

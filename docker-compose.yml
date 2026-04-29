@@ -9,7 +9,7 @@ services:
       - "1883:1883"
       - "9001:9001"
     volumes:
-      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./backend/mosquitto.conf:/mosquitto/config/mosquitto.conf
     networks:
       - apicole-net
 
@@ -24,42 +24,50 @@ services:
       - MQTT_HOST=mosquitto
       - MQTT_PORT=1883
       - HMAC_SECRET=${HMAC_SECRET:-dev_secret}
-      - DATABASE_URL=sqlite:///./apicole.db
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY:-}
+      - VAPID_EMAIL=${VAPID_EMAIL:-mailto:admin@surveillance-apicole.fr}
+      - DB_PATH=/app/db/RucheIA.db
     depends_on:
       - mosquitto
     volumes:
-      - ./backend:/app
+      - db-data:/app/db
     networks:
       - apicole-net
 
   # =====================================================
-  # Simulateur de capteurs IoT
+  # Simulateur de capteurs IoT (direct SQLite, sans MQTT)
   # =====================================================
   sensor-mock:
-    build: ./backend
-    command: python sensor_mock.py
+    image: python:3.12-slim
+    command: >
+      sh -c "pip install pandas -q && python /bdd/moks_live.py"
     environment:
-      - MQTT_HOST=mosquitto
-      - MQTT_PORT=1883
-      - HMAC_SECRET=${HMAC_SECRET:-dev_secret}
+      - DB_PATH=/db/RucheIA.db
+      - CSV_TEMP=/bdd/temperature_2017.csv
+      - CSV_POIDS=/bdd/weight_2017.csv
       - MOCK_INTERVAL=5
     depends_on:
-      - mosquitto
+      - backend
+    volumes:
+      - ./BDD:/bdd
+      - db-data:/db
     networks:
       - apicole-net
 
   # =====================================================
   # Frontend Angular (build multi-étapes + Nginx)
-  # Remplace l'ancien service nginx:alpine avec fichiers statiques
   # =====================================================
   frontend:
-    build: ./angular-app   # Build l'image depuis angular-app/Dockerfile
+    build: ./angular-app
     ports:
       - "80:80"
     depends_on:
       - backend
     networks:
       - apicole-net
+
+volumes:
+  db-data:
 
 networks:
   apicole-net:
