@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException
 
 from database import get_db_connection
 from schemas import PushSubscriptionIn
+from push_utils import webpush_send
 
 router = APIRouter(prefix="/api/push", tags=["push"])
 logger = logging.getLogger("push")
@@ -23,10 +24,8 @@ def _ensure_table():
         conn.commit()
 
 
-def _push_critical_alerts_to(subscription_json: str):
-    """Envoie les alertes critiques actives à un abonné qui vient de s'inscrire."""
-    from main import _send_push_to_subscription
-
+def _push_existing_criticals_to(subscription_json: str):
+    """Envoie les alertes critiques actives à un nouvel abonné."""
     with get_db_connection() as conn:
         alerts = conn.execute("""
             SELECT id_ruche, message FROM alertes
@@ -35,15 +34,12 @@ def _push_critical_alerts_to(subscription_json: str):
         """).fetchall()
 
     seen = set()
+    sub_info = json.loads(subscription_json)
     for a in alerts:
         hive_id = a["id_ruche"]
         if hive_id not in seen:
             seen.add(hive_id)
-            threading.Thread(
-                target=_send_push_to_subscription,
-                args=(subscription_json, hive_id, a["message"]),
-                daemon=True,
-            ).start()
+            webpush_send(sub_info, hive_id, a["message"])
 
 
 @router.post("/subscribe", status_code=201)
@@ -74,9 +70,9 @@ def subscribe(sub: PushSubscriptionIn):
         conn.commit()
 
     if is_new:
-        logger.info("Nouvel abonné push — envoi des alertes critiques actives")
+        logger.info("Nouvel abonné — envoi des alertes critiques actives")
         threading.Thread(
-            target=_push_critical_alerts_to,
+            target=_push_existing_criticals_to,
             args=(subscription_json,),
             daemon=True,
         ).start()

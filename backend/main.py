@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from database import get_db_connection
 from mqtt_client import start_mqtt_subscriber
+from push_utils import webpush_send
 from routers import alerts, chat, diagnosis, hives, push, settings
 
 load_dotenv()
@@ -141,44 +142,6 @@ def _init_db():
 # Push helper (partagé avec mqtt_client)
 # ---------------------------------------------------------------------------
 
-def _webpush_send(subscription_info: dict, data: str):
-    vapid_private_key = os.getenv("VAPID_PRIVATE_KEY")
-    vapid_email = os.getenv("VAPID_EMAIL", "mailto:admin@surveillance-apicole.fr")
-    if not vapid_private_key:
-        logger.warning("VAPID_PRIVATE_KEY non configurée — push ignoré")
-        return None
-    try:
-        from pywebpush import webpush, WebPushException
-        webpush(
-            subscription_info=subscription_info,
-            data=data,
-            vapid_private_key=vapid_private_key,
-            vapid_claims={"sub": vapid_email},
-        )
-        logger.info("Push envoyé vers %s…", subscription_info.get("endpoint", "")[:40])
-        return None
-    except Exception as exc:
-        status = getattr(getattr(exc, "response", None), "status_code", None)
-        logger.warning("Push échoué (status=%s) : %s", status, exc)
-        return status
-
-
-def _send_push_to_subscription(subscription_json: str, hive_id: str, message: str):
-    """Envoie un push à un seul abonné (utilisé lors de l'inscription)."""
-    data = json.dumps({
-        "title": f"Alerte — Ruche {hive_id}",
-        "body":  message,
-        "icon":  "/icons/icon-192.png",
-        "url":   "/",
-    })
-    status = _webpush_send(json.loads(subscription_json), data)
-    if status in (404, 410):
-        with get_db_connection() as conn:
-            conn.execute("DELETE FROM push_subscriptions WHERE endpoint = ?",
-                         (json.loads(subscription_json).get("endpoint"),))
-            conn.commit()
-
-
 def _send_push(hive_id: str, message: str):
     """Envoie un push à tous les abonnés."""
     with get_db_connection() as conn:
@@ -189,15 +152,9 @@ def _send_push(hive_id: str, message: str):
         logger.info("Push ignoré — aucun abonné enregistré")
         return
 
-    data = json.dumps({
-        "title": f"Alerte — Ruche {hive_id}",
-        "body":  message,
-        "icon":  "/icons/icon-192.png",
-        "url":   "/",
-    })
     stale = []
     for row in rows:
-        status = _webpush_send(json.loads(row["subscription_json"]), data)
+        status = webpush_send(json.loads(row["subscription_json"]), hive_id, message)
         if status in (404, 410):
             stale.append(row["id"])
     if stale:
