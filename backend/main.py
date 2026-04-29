@@ -20,6 +20,34 @@ logging.basicConfig(
 
 logger = logging.getLogger("main")
 
+def _seed_mesures(conn):
+    import random
+    from datetime import datetime, timedelta
+
+    hives = [
+        {"id": "CF003", "base_freq": 230, "base_temp": 34.0, "base_poids": 28.0},
+        {"id": "CJ001", "base_freq": 245, "base_temp": 33.5, "base_poids": 32.0},
+        {"id": "H1",    "base_freq": 280, "base_temp": 36.0, "base_poids": 25.0},
+    ]
+    rows = []
+    now = datetime.now()
+    for i in range(100):
+        ts = (now - timedelta(hours=100 - i)).strftime("%Y-%m-%d %H:%M:%S")
+        for h in hives:
+            rows.append((
+                h["id"], ts,
+                round(h["base_temp"] + random.uniform(-2, 4), 2),
+                round(h["base_poids"] + random.uniform(-0.5, 0.5), 2),
+                round(h["base_freq"] + random.uniform(-5, 30), 1),
+                round(60 + random.uniform(-10, 15), 1),
+            ))
+    conn.executemany(
+        "INSERT INTO mesures (id_ruche, timestamp, temperature, poids, frequence_moyenne, humidite) VALUES (?,?,?,?,?,?)",
+        rows,
+    )
+    logger.info("300 mesures de démo insérées (100h × 3 ruches)")
+
+
 def _init_db():
     with get_db_connection() as conn:
         conn.executescript("""
@@ -73,6 +101,10 @@ def _init_db():
                 ],
             )
             logger.info("Base de données initialisée avec les 3 ruches par défaut")
+
+        if conn.execute("SELECT COUNT(*) FROM mesures").fetchone()[0] == 0:
+            _seed_mesures(conn)
+
         conn.commit()
 
 
