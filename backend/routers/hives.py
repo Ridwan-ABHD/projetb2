@@ -49,11 +49,15 @@ def list_hives():
                 FROM alertes WHERE id_ruche = ? AND is_resolved = 0
             """, (hid,)).fetchall()
 
+            severities = [a["severity"] for a in alerts]
+            status = "critical" if "critical" in severities else \
+                     "warning"  if "warning"  in severities else "normal"
+
             result.append({
                 "id":           hid,
                 "name":         hid,
                 "location":     h["id_site"] or "",
-                "status":       h["type_ruche"] or "normal",
+                "status":       status,
                 "last_reading": _row_to_reading(last),
                 "active_alerts": [dict(a) for a in alerts],
             })
@@ -79,11 +83,15 @@ def get_hive(hive_id: str):
             FROM alertes WHERE id_ruche = ? AND is_resolved = 0
         """, (hive_id,)).fetchall()
 
+        severities = [a["severity"] for a in alerts]
+        status = "critical" if "critical" in severities else \
+                 "warning"  if "warning"  in severities else "normal"
+
         return {
             "id":           hive_id,
             "name":         hive_id,
             "location":     h["id_site"] or "",
-            "status":       h["type_ruche"] or "normal",
+            "status":       status,
             "last_reading": _row_to_reading(last),
             "active_alerts": [dict(a) for a in alerts],
         }

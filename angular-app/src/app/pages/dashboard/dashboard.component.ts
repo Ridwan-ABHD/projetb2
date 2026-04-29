@@ -31,9 +31,8 @@ export class DashboardComponent implements OnInit {
   criticalAlert = signal<Alert | null>(null); // Première alerte critique (pour la bannière)
 
   // Moyennes des capteurs (KPIs)
-  avgFreq     = signal(0); // Fréquence acoustique moyenne (Hz)
-  avgTemp     = signal(0); // Température moyenne (°C)
-  avgHumidity = signal(0); // Humidité moyenne (%)
+  avgFreq = signal(0);
+  avgTemp = signal(0);
 
   ngOnInit(): void {
     // forkJoin : Lance les 2 requêtes en parallèle et attend que les 2 soient terminées
@@ -53,12 +52,11 @@ export class DashboardComponent implements OnInit {
         // Calcul des moyennes uniquement sur les ruches qui ont une lecture capteur
         const withReading = hives.filter(h => h.last_reading);
         if (withReading.length > 0) {
-          const avg = (key: 'frequency_hz' | 'temperature_c' | 'humidity_pct') =>
+          const avg = (key: 'frequency_hz' | 'temperature_c') =>
             withReading.reduce((sum, h) => sum + h.last_reading![key], 0) / withReading.length;
 
           this.avgFreq.set(avg('frequency_hz'));
           this.avgTemp.set(avg('temperature_c'));
-          this.avgHumidity.set(avg('humidity_pct'));
         }
       },
       error: err => console.error('Erreur chargement dashboard :', err),

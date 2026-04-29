@@ -33,22 +33,13 @@
       <!-- KPI principal : fréquence acoustique -->
       <div class="kpi-big">
         <small>Fréquence sonore moyenne</small>
-        <!-- Le pipe "number:'1.0-0'" arrondit à 0 décimale -->
         <h2>{{ avgFreq() | number:'1.0-0' }} Hz</h2>
-        <small>↑ Seuil d'alerte : 250 Hz</small>
       </div>
 
       <!-- KPI secondaire : température -->
       <div class="kpi">
         <small>Température</small>
-        <!-- "1.1-1" = minimum 1 décimale, maximum 1 décimale -->
         <h2>{{ avgTemp() | number:'1.1-1' }}°C</h2>
-      </div>
-
-      <!-- KPI secondaire : humidité -->
-      <div class="kpi">
-        <small>Humidité</small>
-        <h2>{{ avgHumidity() | number:'1.0-0' }}%</h2>
       </div>
 
     </div>
