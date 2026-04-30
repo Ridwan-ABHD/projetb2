@@ -1,8 +1,19 @@
-<!-- Barre de navigation fixe en bas de l'écran -->
+<!-- Barre de navigation fixe en bas de l'écran / sidebar sur desktop -->
 <nav class="bottom-nav">
 
-  <!-- @for = boucle Angular 17+ (remplace *ngFor) -->
-  <!-- track item.path : optimise le rendu (Angular sait quel élément a changé) -->
+  <!-- Bloc marque — visible uniquement sur desktop (≥1024px via CSS) -->
+  <div class="sidebar-brand">
+    <div class="sidebar-brand-icon">🐝</div>
+    <div>
+      <div class="sidebar-brand-name">BeeGuard AI</div>
+      <div class="sidebar-brand-sub">Surveillance Apicole</div>
+    </div>
+  </div>
+
+  <!-- Séparateur de section — desktop uniquement -->
+  <div class="sidebar-section-label">Navigation</div>
+
+  <!-- @for = boucle Angular 17+ -->
   @for (item of navItems; track item.path) {
     <a
       [routerLink]="item.path"
@@ -15,5 +26,10 @@
       <span class="nav-label">{{ item.label }}</span>
     </a>
   }
+
+  <!-- Footer sidebar — desktop uniquement -->
+  <div class="sidebar-footer">
+    <span class="sidebar-version">v2.0</span>
+  </div>
 
 </nav>
