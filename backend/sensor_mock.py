@@ -22,9 +22,9 @@ INTERVAL = int(os.getenv("MOCK_INTERVAL", 5))
 
 # Tes ruches réelles
 HIVES = [
-    {"id": "CF003", "base_freq": 230},
-    {"id": "CJ001", "base_freq": 245},
-    {"id": "H1",    "base_freq": 280},
+    {"id": "CF003"},
+    {"id": "CJ001"},
+    {"id": "H1"},
 ]
 
 def _sign(data: dict) -> str:

@@ -12,7 +12,6 @@ logger = logging.getLogger("mqtt_client")
 
 _HMAC_SECRET = "dev_secret"
 
-# Seuil de température pour déclencher un push critique
 _TEMP_CRITICAL = 38.0
 
 
@@ -35,7 +34,7 @@ def _send_push_notifications(hive_id, temp: float):
         return
 
     try:
-        from pywebpush import webpush, WebPushException  # type: ignore[import]
+        from pywebpush import webpush, WebPushException
     except ImportError:
         logger.warning("pywebpush non installé — push ignoré")
         return
@@ -83,30 +82,42 @@ def _send_push_notifications(hive_id, temp: float):
 def _on_message(client, userdata, msg):
     try:
         payload = json.loads(msg.payload.decode())
+
         if not _verify_hmac(payload):
             logger.warning("Signature HMAC invalide — message ignoré")
             return
 
-        hid = payload.get("hive_id")
-        temp = payload.get("temperature_c")
-        poids = payload.get("weight_kg")
+        topic = msg.topic
 
-        with get_db_connection() as conn:
-            cursor = conn.cursor()
-            # On insère uniquement les données physiques (l'IA fera l'UPDATE plus tard)
-            cursor.execute("""
-                INSERT INTO mesures (id_ruche, timestamp, temperature, poids)
-                VALUES (?, ?, ?, ?)
-            """, (
-                hid,
-                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                temp,
-                poids,
-            ))
-            conn.commit()
-            
-            # LOG PROPRE : Plus de mention de fréquence ici !
-            logger.info(f"📥 Données IoT reçues | Ruche: {hid} | Temp: {temp}°C | Poids: {poids}kg")
+        # Topic capteurs : temp + poids → INSERT
+        if topic.endswith("/sensors"):
+            hid   = payload.get("hive_id")
+            temp  = payload.get("temperature_c")
+            poids = payload.get("weight_kg")
+
+            with get_db_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    INSERT INTO mesures (id_ruche, timestamp, temperature, poids)
+                    VALUES (?, ?, ?, ?)
+                """, (hid, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), temp, poids))
+                conn.commit()
+                logger.info(f"📥 Données IoT reçues | Ruche: {hid} | Temp: {temp}°C | Poids: {poids}kg")
+
+        # Topic fréquence : frequence_moyenne → UPDATE
+        elif topic.endswith("/frequency"):
+            hid  = payload.get("hive_id")
+            freq = payload.get("frequency_hz")
+
+            with get_db_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    UPDATE mesures
+                    SET frequence_moyenne = ?
+                    WHERE id_ruche = ?
+                """, (freq, hid))
+                conn.commit()
+                logger.info(f"🎵 Fréquence mise à jour | Ruche: {hid} | {freq} Hz")
 
     except Exception as e:
         logger.error(f"Erreur lors du traitement MQTT : {e}")
@@ -121,6 +132,7 @@ def start_mqtt_subscriber(host: str, port: int, secret: str) -> None:
     def _on_connect(client, userdata, flags, rc, properties=None):
         if rc == 0:
             client.subscribe("apicole/hive/+/sensors")
+            client.subscribe("apicole/hive/+/frequency")
             logger.info(f"MQTT connecté sur {host}:{port}")
         else:
             logger.error(f"Échec connexion MQTT (code {rc})")

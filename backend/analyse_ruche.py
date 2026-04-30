@@ -1,129 +1,146 @@
+import hashlib
+import hmac
+import json
+import logging
+import os
+import random
 import sys
-from pathlib import Path
 import time
-from datetime import datetime
+from datetime import datetime, timezone
+from pathlib import Path
+
 import librosa
 import numpy as np
-import os 
-import random
+import paho.mqtt.client as mqtt
+from dotenv import load_dotenv
 
-# Configuration des chemins
+# --- Chemin vers database.py (dans le même dossier BDD/) ---
 HERE = Path(__file__).resolve().parent
 if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))
 
 from database import get_db_connection
 
+load_dotenv()
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+logger = logging.getLogger("analyse_ruche")
+
+# --- CONFIGURATION (identique à sensor_mock.py) ---
+MQTT_HOST   = os.getenv("MQTT_HOST", "localhost")
+MQTT_PORT   = int(os.getenv("MQTT_PORT", 1883))
+HMAC_SECRET = os.getenv("HMAC_SECRET", "dev_secret")
+INTERVAL    = 10  # secondes entre chaque analyse
+
+
+# --- SIGNATURE HMAC (identique à sensor_mock.py) ---
+def _sign(data: dict) -> str:
+    raw = json.dumps(data, sort_keys=True).encode()
+    return hmac.new(HMAC_SECRET.encode(), raw, hashlib.sha256).hexdigest()
+
+
+# --- ANALYSE AUDIO ---
 def son_abeille(debut, fin, nom_wav):
-    """Charge un segment audio spécifique."""
     longueur = fin - debut
-    # Chemin vers le dossier BDD/audios à la racine du projet
     audio_dir = HERE.parent / "BDD" / "audios"
     chemin_complet = audio_dir / nom_wav
-
     if not chemin_complet.exists():
         raise FileNotFoundError(f"Fichier audio introuvable : {chemin_complet}")
-
-    # Chargement du segment avec librosa
-    y, sr = librosa.load(chemin_complet, offset=debut, duration=longueur)
+    y, sr = librosa.load(str(chemin_complet), offset=debut, duration=longueur)
     return y, sr
 
+
 def detecter_frequence(y, sr):
-    """Calcule la fréquence dominante du signal audio."""
     if len(y) == 0:
         return 0
     spectre = np.abs(librosa.stft(y))
     frequences = librosa.fft_frequencies(sr=sr)
-    # On trouve la fréquence dominante (pic d'énergie moyenne)
     index_max = np.argmax(np.mean(spectre, axis=1))
     return frequences[index_max]
 
-def executer_analyse():
-    """Script principal d'analyse qui met à jour la base de données."""
-    print(f"\n--- 🔎 ANALYSE IA EN COURS ({datetime.now().strftime('%H:%M:%S')}) ---")
-    
+
+# --- ANALYSE + ENVOI MQTT ---
+def executer_analyse(client: mqtt.Client):
+    logger.info(f"🔎 Analyse acoustique en cours ({datetime.now().strftime('%H:%M:%S')})")
+
     try:
         with get_db_connection() as conn:
             curseur = conn.cursor()
 
-            # 1. On récupère la liste des ruches qui ont des mesures en base
-            curseur.execute("SELECT DISTINCT id_ruche FROM mesures")
-            ruches_a_traiter = curseur.fetchall()
+            # 1. Ruches qui ont des enregistrements audio avec segments 'bee'
+            curseur.execute("""
+                SELECT DISTINCT e.id_audio, e.id_ruche, e.nom_fichier
+                FROM enregistrements e
+                JOIN segments s ON s.id_audio = e.id_audio
+                WHERE s.label = 'bee'
+            """)
+            enregistrements = curseur.fetchall()
 
-            if not ruches_a_traiter:
-                print("😴 Aucune mesure trouvée dans la base. Lance le simulateur !")
+            if not enregistrements:
+                logger.warning("Aucun enregistrement 'bee' trouvé. Lance lab.py d'abord !")
                 return
 
-            for (id_ruche,) in ruches_a_traiter:
-                # 2. On cherche un fichier audio associé à cette ruche
-                # On utilise LIMIT 1 pour simplifier la démo
+            for id_audio, id_ruche, nom_fichier in enregistrements:
+                # 2. Segments 'bee' pour cet audio
                 curseur.execute("""
-                    SELECT nom_fichier, id_audio FROM enregistrements 
-                    WHERE id_ruche = ? LIMIT 1
-                """, (id_ruche,))
-                audio = curseur.fetchone()
+                    SELECT debut, fin FROM segments
+                    WHERE id_audio = ? AND label = 'bee'
+                """, (id_audio,))
+                segments = curseur.fetchall()
 
-                if audio:
-                    nom_fichier, id_audio = audio
-                    
-                    # 3. Récupération des segments 'bee' (abeilles)
-                    curseur.execute("""
-                        SELECT debut, fin FROM segments 
-                        WHERE id_audio = ? AND label = 'bee'
-                    """, (id_audio,))
-                    segments = curseur.fetchall()
-                    
-                    frequences_calculees = []
-                    for debut, fin in segments:
-                        try:
-                            y, sr = son_abeille(debut, fin, nom_fichier)
-                            freq = detecter_frequence(y, sr)
-                            if freq > 0:
-                                frequences_calculees.append(freq)
-                        except Exception:
-                            continue
+                frequences = []
+                for debut, fin in segments:
+                    try:
+                        y, sr = son_abeille(debut, fin, nom_fichier)
+                        freq = detecter_frequence(y, sr)
+                        if freq > 0:
+                            frequences.append(freq)
+                    except Exception as e:
+                        logger.warning(f"Segment [{debut:.2f}s-{fin:.2f}s] ignoré : {e}")
 
-                    if frequences_calculees:
-                        # Calcul de la moyenne + petite variation pour le dynamisme sur Angular
-                        freq_moyenne = np.mean(frequences_calculees)
-                        freq_finale = round(float(freq_moyenne) + random.uniform(-2, 2), 2)
-                        
-                        # 4. MISE À JOUR : On applique la fréquence à TOUTES les lignes de cette ruche
-                        # On a enlevé "AND frequence_moyenne IS NULL" comme demandé
-                        curseur.execute("""
-                            UPDATE mesures 
-                            SET frequence_moyenne = ? 
-                            WHERE id_ruche = ?
-                        """, (freq_finale, id_ruche))
-                        
-                        conn.commit()
-                        print(f"✅ {id_ruche} : {len(frequences_calculees)} segments analysés -> {freq_finale} Hz")
-                        
-                        # Petite pause pour laisser le temps au MQTT d'écrire sans bloquer la base
-                        time.sleep(0.5)
-                    else:
-                        print(f"⚠️ {id_ruche} : Aucun segment 'bee' valide dans {nom_fichier}")
+                if frequences:
+                    # Petite variation pour dynamisme
+                    freq_finale = round(float(np.mean(frequences)) + random.uniform(-2, 2), 2)
+
+                    # 3. On publie sur MQTT au lieu d'écrire directement en BDD
+                    payload = {
+                        "hive_id":      id_ruche,
+                        "frequency_hz": freq_finale,
+                        "ts":           datetime.now(timezone.utc).isoformat(),
+                    }
+                    payload["signature"] = _sign({k: v for k, v in payload.items()})
+
+                    topic = f"apicole/hive/{id_ruche}/frequency"
+                    client.publish(topic, json.dumps(payload))
+
+                    logger.info(f"📡 MQTT [Freq] | {id_ruche} | {freq_finale} Hz")
                 else:
-                    print(f"❓ {id_ruche} : Aucun fichier audio trouvé dans la table 'enregistrements'")
+                    logger.warning(f"Aucune fréquence calculée pour {nom_fichier}")
 
     except Exception as e:
-        print(f"❌ Erreur SQL ou système : {e}")
+        logger.error(f"Erreur analyse : {e}")
 
-# --- BOUCLE DE LANCEMENT ---
+
+# --- PROGRAMME PRINCIPAL ---
+def main():
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+
+    try:
+        client.connect(MQTT_HOST, MQTT_PORT, keepalive=60)
+        client.loop_start()
+        logger.info(f"🚀 Moteur acoustique actif sur {MQTT_HOST}:{MQTT_PORT}")
+    except Exception as e:
+        logger.error(f"Impossible de se connecter au broker MQTT : {e}")
+        return
+
+    try:
+        while True:
+            executer_analyse(client)
+            logger.info(f"😴 Prochaine analyse dans {INTERVAL}s...")
+            time.sleep(INTERVAL)
+    except KeyboardInterrupt:
+        client.loop_stop()
+        logger.info("👋 Arrêt du moteur acoustique.")
+
+
 if __name__ == "__main__":
-    print("========================================")
-    print("🐝 MOTEUR D'ANALYSE ACOUSTIQUE DÉMARRÉ")
-    print("========================================")
-    
-    while True:
-        try:
-            executer_analyse()
-        except KeyboardInterrupt:
-            print("\n👋 Arrêt du script d'analyse.")
-            break
-        except Exception as e:
-            print(f"💥 Erreur fatale : {e}")
-        
-        # Pause de 10 secondes avant la prochaine analyse
-        print("\n😴 En attente de nouvelles données (10s)...")
-        time.sleep(10)
+    main()
